@@ -165,3 +165,24 @@ test('two thumbs can move and hold attack independently', async ({ browser }) =>
   await cdp.send('Input.dispatchTouchEvent', { type: 'touchEnd', touchPoints: [] });
   await context.close();
 });
+
+test('attack sheets contain distinct poses on a shared native pixel grid', async ({ page }) => {
+  await page.goto('/');
+  const result = await page.evaluate(async () => {
+    const { createArt } = await import('/src/art.js');
+    const art = createArt();
+    const heroes = Object.values(art.heroes).map(hero => ({
+      distinct: new Set(hero.attack.map(frame => frame.right.toDataURL())).size,
+      dimensions: Object.values(hero).flat().every(frame => frame.right.width === 32 && frame.right.height === 40),
+    }));
+    const boss = ['windup', 'overhead', 'slam', 'recover'].map(pose => art.orc[pose][0].right.toDataURL());
+    const flash = art.orc.idle[0].flashRight;
+    const rgba = flash.getContext('2d').getImageData(0, 0, flash.width, flash.height).data;
+    const colors = new Set();
+    for (let i = 0; i < rgba.length; i += 4) if (rgba[i + 3]) colors.add(`${rgba[i]},${rgba[i + 1]},${rgba[i + 2]}`);
+    return { heroes, bossPoses: new Set(boss).size, flashColors: colors.size };
+  });
+  expect(result.heroes.every(hero => hero.distinct === 3 && hero.dimensions)).toBe(true);
+  expect(result.bossPoses).toBe(4);
+  expect(result.flashColors).toBeGreaterThan(8);
+});

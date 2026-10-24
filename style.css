@@ -1,28 +1,26 @@
-@import url('https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@400;500;600;700&display=swap');
-
-:root { color-scheme: dark; font-family: 'Space Grotesk', system-ui, sans-serif; color: #e5edf7; background: #0b1020; }
+:root { color-scheme: dark; font-family: ui-monospace, 'Cascadia Mono', monospace; color: #dddde7; background: #101222; }
 * { box-sizing: border-box; }
 [hidden] { display: none !important; }
-body { margin: 0; min-height: 100dvh; background: radial-gradient(ellipse at 50% 20%, #1a2942, #0b1020 65%); }
+body { margin: 0; min-height: 100dvh; background: radial-gradient(ellipse at 50% 20%, #2d263c, #101222 65%); }
 main { min-height: 100dvh; display: grid; place-items: center; padding: 24px; }
-.panel { width: min(100%, 460px); padding: 36px; border: 1px solid #29364e; background: #101a2ae8; border-radius: 24px; box-shadow: 0 24px 90px #0005; }
+.panel { width: min(100%, 460px); padding: 32px; border: 2px solid #514558; background: #191c2deF; border-radius: 6px; box-shadow: 5px 5px 0 #090d19, inset 0 0 0 3px #242437; }
 .eyebrow { display: block; color: #8fa2bd; font-size: 10px; letter-spacing: 2px; font-weight: 700; }
 h1 { margin: 0 0 8px; font-size: clamp(40px, 10vw, 56px); letter-spacing: -3px; line-height: 1; }
-h1 span { color: #70e3bb; }
+h1 span { color: #d6b68a; }
 .intro { color: #a3b3c9; margin: 12px 0 24px; font-size: 14px; }
 label { display: block; margin-bottom: 12px; font-weight: 500; }
 input { width: 100%; background: #0b1220; color: #fff; border: 1px solid #3b4d69; border-radius: 10px; padding: 14px; font: inherit; margin-bottom: 14px; }
-button { border: 0; border-radius: 10px; background: #70e3bb; color: #10251e; padding: 14px 20px; font: inherit; font-weight: 700; cursor: pointer; min-height: 44px; }
+button { border: 0; border-radius: 4px; background: #d6b68a; color: #242033; padding: 14px 20px; font: inherit; font-weight: 700; cursor: pointer; min-height: 44px; }
 button:disabled { opacity: .45; cursor: not-allowed; }
 button:focus-visible, input:focus-visible, a:focus-visible { outline: 3px solid #9bbdff; outline-offset: 3px; }
 #name-form button, #play, #cancel, #practice { width: 100%; }
 .secondary { background: #23314a; color: #d3deee; }
 #practice, #cancel { margin-top: 10px; }
-.text-button { padding: 4px 0 4px 12px; background: none; color: #70e3bb; font-size: 13px; }
+.text-button { padding: 4px 0 4px 12px; background: none; color: #d6b68a; font-size: 12px; }
 .identity { display: flex; align-items: center; justify-content: space-between; font-size: 14px; }
 .presence { display: flex; align-items: center; gap: 9px; color: #a8bad2; font-size: 12px; }
 .dot { width: 7px; height: 7px; background: #7b879d; border-radius: 50%; }
-.dot.connected { background: #70e3bb; box-shadow: 0 0 14px #70e3bb66; }
+.dot.connected { background: #a7c8b4; }
 #status { min-height: 20px; margin: 4px 0 16px; font-size: 12px; line-height: 1.5; color: #a3b3c9; overflow-wrap: anywhere; }
 .privacy, .controls-note { color: #91a4bf; font-size: 11px; line-height: 1.65; }
 .privacy { position: relative; }
@@ -41,11 +39,11 @@ button:focus-visible, input:focus-visible, a:focus-visible { outline: 3px solid 
 #presence-note a { color: inherit; }
 #class-picker { display: grid; grid-template-columns: repeat(3, 1fr); gap: 8px; padding: 0; margin: 12px 0 0; border: 0; }
 #class-picker legend { color: #91a4bf; font-size: 11px; padding: 0 0 8px; }
-.class-card { position: relative; display: grid; justify-items: center; gap: 6px; padding: 10px 4px; margin: 0; border: 2px solid #34443d; background: #202b29; cursor: pointer; font-size: 11px; }
-.class-card:has(input:checked) { border-color: #d0b47a; background: #393b2b; color: #f0dfac; }
+.class-card { position: relative; display: grid; justify-items: center; gap: 6px; padding: 8px 2px; margin: 0; border: 2px solid #3b3b55; background: #23263c; cursor: pointer; font-size: 10px; }
+.class-card:has(input:checked) { border-color: #d0b48c; background: #3a2e43; color: #f0dfbf; }
 .class-card:has(input:focus-visible) { outline: 2px solid #c8e1d9; outline-offset: 2px; }
 .class-card input { position: absolute; opacity: 0; width: 1px; height: 1px; margin: 0; padding: 0; }
-.class-card canvas { width: 48px; height: 56px; image-rendering: pixelated; }
+.class-card canvas { width: 64px; height: 80px; image-rendering: pixelated; }
 #class-description { font-size: 11px; color: #b8ba9a; min-height: 16px; margin: 8px 0 12px; }
 .controls-note { border-top: 1px solid #29364e; padding-top: 20px; margin-top: 25px; }
 .source { color: #91a4bf; font-size: 11px; text-decoration: none; }
@@ -65,7 +63,7 @@ button:focus-visible, input:focus-visible, a:focus-visible { outline: 3px solid 
 #boss-health::-moz-progress-bar { background: #b7664d; }
 #game-notice { position: absolute; top: max(140px, calc(env(safe-area-inset-top) + 128px)); left: 50%; transform: translateX(-50%); text-align: center; color: #ffc98a; font-size: 12px; background: #101a2add; border-radius: 12px; padding: 10px 16px; max-width: 90%; pointer-events: none; }
 #game-notice:empty { display: none; }
-#bottom-controls { position: absolute; left: 0; right: 0; bottom: 0; height: var(--controls-height); padding: 32px max(16px, env(safe-area-inset-right)) calc(8px + env(safe-area-inset-bottom)) max(16px, env(safe-area-inset-left)); display: flex; align-items: center; justify-content: space-between; gap: 10px; border-top: 2px solid #697265; background: #24312f; }
+#bottom-controls { position: absolute; left: 0; right: 0; bottom: 0; height: var(--controls-height); padding: 32px max(16px, env(safe-area-inset-right)) calc(8px + env(safe-area-inset-bottom)) max(16px, env(safe-area-inset-left)); display: flex; align-items: center; justify-content: space-between; gap: 10px; border-top: 2px solid #6e6278; background: #202638; }
 .combat-info { position: absolute; top: 9px; left: 16px; right: 16px; display: flex; justify-content: space-between; gap: 12px; font: 10px ui-monospace, monospace; color: #e6d8ae; }
 #fight-status { color: #a7b7a7; font-size: 9px; text-align: right; }
 .combat-buttons { display: flex; align-items: center; gap: 12px; margin-left: auto; }

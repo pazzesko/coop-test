@@ -22,6 +22,8 @@ test('barbarian melee only damages a nearby boss and respects cooldown', () => {
   advance(fight, 0.6);
   Object.assign(fight.players[0], { x: fight.boss.x, y: fight.boss.y + 80 });
   assert.equal(fight.action(0, 'attack'), true);
+  assert.equal(fight.boss.hp, fight.boss.maxHp);
+  advance(fight, 0.12);
   assert.equal(fight.boss.hp, fight.boss.maxHp - CLASSES.barbarian.damage);
   assert.equal(fight.action(0, 'attack'), false);
 });
@@ -30,6 +32,8 @@ test('mage and archer create projectiles that hit once without friendly fire', (
   for (const id of ['mage', 'archer']) {
     const fight = new Fight([id, 'barbarian']);
     assert.equal(fight.action(0, 'attack'), true);
+    assert.equal(fight.shots.length, 0);
+    advance(fight, 0.15);
     assert.equal(fight.shots[0].kind, id);
     advance(fight, 0.6);
     assert.equal(fight.boss.hp, fight.boss.maxHp - CLASSES[id].damage);
@@ -98,6 +102,7 @@ test('slaying the orc wins and prevents any subsequent damage', () => {
   Object.assign(fight.players[0], { x: fight.boss.x, y: fight.boss.y + 40 });
   fight.boss.hp = 1;
   fight.action(0, 'attack');
+  advance(fight, 0.12);
   assert.equal(fight.outcome, 'victory');
   assert.equal(fight.boss.hp, 0);
   const hp = fight.players[0].hp;
@@ -123,6 +128,7 @@ test('fight snapshots are bounded, validated and include authoritative health', 
   assert.equal(validFight(snapshot), true);
   assert.equal(validFight({ ...snapshot, circles: Array(30).fill(snapshot.circles[0]) }), false);
   assert.equal(validFight({ ...snapshot, t: Infinity }), false);
+  assert.equal(validFight({ ...snapshot, effects: Array(25).fill({}) }), false);
   snapshot.players[0].hp = -100;
   assert.equal(validFight(snapshot), false);
 });

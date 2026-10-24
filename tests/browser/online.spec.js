@@ -226,6 +226,10 @@ test('co-op classes and boss damage agree, and guests cannot declare victory', a
     await alice.page.waitForTimeout(900);
     const hp = await alice.page.locator('#boss-health').evaluate(e => e.value);
     await expect.poll(() => bob.page.locator('#boss-health').evaluate(e => e.value)).toBe(hp);
+    const sharedEffects = await alice.page.evaluate(() => [...window.fightStats.sent, ...window.fightStats.received].flatMap(state => state.effects.map(effect => effect.kind)));
+    expect(sharedEffects).toContain('cast');
+    expect(sharedEffects).toContain('fire-hit');
+    expect(sharedEffects).toContain('bow');
     const aliceHost = await alice.page.evaluate(() => window.fightStats.sent.length > 0);
     const guest = aliceHost ? bob : alice;
     await guest.page.evaluate(() => {
