@@ -15,9 +15,9 @@ test('WASD diagonal speed is normalized', () => {
 });
 
 test('walls stop movement even across long frames', () => {
-  const player = { x: 500, y: 350 };
+  const player = { x: 180, y: 200 };
   move(player, 1, 0, 2);
-  assert.ok(player.x < 536);
+  assert.ok(player.x < 230);
   assert.equal(blocked(player.x, player.y), false);
 });
 

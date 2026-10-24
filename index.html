@@ -12,7 +12,7 @@
   <main>
     <section id="menu" class="panel">
       <h1>COOP<span>TEST</span></h1>
-      <p class="intro">Find a partner. Explore together.</p>
+      <p class="intro">Choose a hero. Take down the Iron Maw.</p>
       <form id="name-form" hidden>
         <label for="name-input">Your name</label>
         <input id="name-input" name="name" minlength="1" maxlength="20" autocomplete="nickname" placeholder="Your player name" required>
@@ -20,10 +20,17 @@
       </form>
       <div id="lobby" hidden>
         <div class="identity"><strong id="player-name"></strong><button id="edit-name" class="text-button">Change name</button></div>
+        <fieldset id="class-picker">
+          <legend>Choose your class</legend>
+          <label class="class-card"><input type="radio" name="hero-class" value="barbarian" checked><canvas data-class="barbarian" width="24" height="28" aria-hidden="true"></canvas><span>Barbarian</span></label>
+          <label class="class-card"><input type="radio" name="hero-class" value="mage"><canvas data-class="mage" width="24" height="28" aria-hidden="true"></canvas><span>Mage</span></label>
+          <label class="class-card"><input type="radio" name="hero-class" value="archer"><canvas data-class="archer" width="24" height="28" aria-hidden="true"></canvas><span>Archer</span></label>
+        </fieldset>
+        <p id="class-description">Axe cleave · tough & close-range</p>
         <p id="status" role="status" aria-live="polite">Getting ready…</p>
         <button id="play" disabled>Play online →</button>
         <button id="cancel" class="secondary" hidden>Cancel search</button>
-        <button id="practice" class="secondary">Practice offline</button>
+        <button id="practice" class="secondary">Fight solo · offline</button>
       </div>
       <section class="online-section" aria-label="Players online">
         <div class="presence"><span id="status-dot" class="dot"></span><span id="online-count">Connecting…</span></div>
@@ -36,11 +43,15 @@
       </footer>
     </section>
     <section id="game" hidden aria-label="Game arena">
-      <canvas id="arena" aria-label="Move with WASD, arrow keys, or the touch joystick"></canvas>
+      <div id="playfield"><canvas id="arena" aria-label="Move with WASD or joystick. Attack with J or Space; dodge with Shift or K."></canvas></div>
       <header class="hud">
         <div><span class="eyebrow">COOP TEST</span><span id="connection-label">Offline practice</span></div>
       </header>
       <div class="metrics" aria-label="Connection and rendering statistics"><span id="ping">PING —</span><span id="fps">FPS —</span></div>
+      <section id="boss-hud" aria-label="Boss health">
+        <div><span id="boss-name">GROKK, THE IRON MAW</span><span id="boss-number"></span></div>
+        <progress id="boss-health" max="1280" value="1280" aria-label="Orc health"></progress>
+      </section>
       <div class="game-actions">
         <button id="fullscreen" class="icon-button" aria-label="Enter fullscreen" title="Enter fullscreen" aria-pressed="false">
           <svg class="expand-icon" viewBox="0 0 24 24" aria-hidden="true"><path d="M8 3H3v5m13-5h5v5M3 16v5h5m13-5v5h-5"/></svg>
@@ -51,12 +62,20 @@
         </button>
       </div>
       <div id="game-notice" role="status" aria-live="polite"></div>
+      <div id="outcome" hidden role="dialog" aria-modal="true" aria-labelledby="outcome-title">
+        <div><span class="eyebrow">END OF RUN</span><h2 id="outcome-title"></h2><p id="outcome-text"></p><button id="outcome-menu">Return to camp</button></div>
+      </div>
       <footer id="bottom-controls">
+        <div class="combat-info"><span id="hero-status"></span><span id="fight-status">Hold attack · dodge the marked circles</span></div>
         <div id="movement-pad" aria-label="Touch movement area">
           <div class="stick-rest" aria-hidden="true"><span>MOVE</span></div>
           <div id="joystick" hidden aria-hidden="true"><div id="joystick-knob"></div></div>
         </div>
-        <div class="desktop-help"><kbd>W</kbd><kbd>A</kbd><kbd>S</kbd><kbd>D</kbd><span>to move · arrows work too</span></div>
+        <div class="desktop-help"><span><kbd>WASD</kbd> move · <kbd>J / Space</kbd> attack · <kbd>Shift / K</kbd> dodge</span></div>
+        <div class="combat-buttons">
+          <button id="dodge" aria-label="Dodge"><canvas id="dodge-icon" width="20" height="20" aria-hidden="true"></canvas><span id="dodge-label">DODGE</span></button>
+          <button id="attack" aria-label="Attack"><canvas id="attack-icon" width="20" height="20" aria-hidden="true"></canvas><span>ATTACK</span></button>
+        </div>
       </footer>
     </section>
   </main>

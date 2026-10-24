@@ -3,9 +3,13 @@ import { Connection } from './network.js';
 import { Game } from './game.js';
 import { setupFullscreen } from './fullscreen.js';
 import { renderPlayers } from './presence.js';
+import { CLASSES, classOf } from './combat.js';
+import { heroSprite, actionIcon } from './art.js';
 
 const $ = id => document.getElementById(id);
-const game = new Game({ arena: $('arena'), movementPad: $('movement-pad'), joystick: $('joystick'), knob: $('joystick-knob'), fps: $('fps') });
+const game = new Game({ arena: $('arena'), playfield: $('playfield'), movementPad: $('movement-pad'), joystick: $('joystick'), knob: $('joystick-knob'), fps: $('fps'),
+  attack: $('attack'), dodge: $('dodge'), dodgeLabel: $('dodge-label'), heroStatus: $('hero-status'), fightStatus: $('fight-status'),
+  bossHealth: $('boss-health'), bossNumber: $('boss-number'), bossName: $('boss-name'), outcome: $('outcome'), outcomeTitle: $('outcome-title'), outcomeText: $('outcome-text') });
 const fullscreen = setupFullscreen($('fullscreen'), $('game'), text => { $('game-notice').textContent = text; });
 let name = '';
 try { name = cleanName(localStorage.getItem('coop-test-name') || ''); } catch { /* Private browsing may disable storage. */ }
@@ -15,6 +19,23 @@ let connection = null;
 let bootError = '';
 let retry = null;
 let attempt = 0;
+let selectedClass = 'barbarian';
+try { selectedClass = classOf(localStorage.getItem('coop-test-class')); } catch { /* Default hero. */ }
+
+function updateClass() {
+  $('class-description').textContent = CLASSES[selectedClass].description;
+  document.querySelector(`input[name="hero-class"][value="${selectedClass}"]`).checked = true;
+  for (const canvas of document.querySelectorAll('[data-class]')) canvas.getContext('2d').drawImage(heroSprite(canvas.dataset.class), 0, 0);
+  $('attack-icon').getContext('2d').clearRect(0, 0, 20, 20);
+  $('attack-icon').getContext('2d').drawImage(actionIcon(selectedClass), 0, 0);
+  $('dodge-icon').getContext('2d').drawImage(actionIcon('dodge'), 0, 0);
+}
+for (const radio of document.querySelectorAll('input[name="hero-class"]')) radio.addEventListener('change', () => {
+  selectedClass = classOf(radio.value);
+  try { localStorage.setItem('coop-test-class', selectedClass); } catch { /* Session selection still works. */ }
+  updateClass();
+});
+updateClass();
 
 function cleanName(value) {
   return String(value).replace(/[\u0000-\u001f\u007f-\u009f\u202a-\u202e\u2066-\u2069]/g, '').trim().slice(0, 20);
@@ -31,6 +52,7 @@ function updateMenu() {
   $('cancel').hidden = !['searching', 'connecting'].includes(phase);
   $('practice').disabled = phase !== 'menu';
   $('edit-name').disabled = phase !== 'menu';
+  $('class-picker').disabled = phase !== 'menu';
   $('status-dot').classList.toggle('connected', connected);
 }
 
@@ -39,7 +61,7 @@ const backend = new Backend({
     connected = value;
     if (!value) $('online-count').textContent = 'Offline';
     if (!value) renderPlayers($('online-list'), [], false);
-    if (phase === 'menu') message(value ? 'Ready. Find a partner and explore the arena.' : 'Connecting to online services…');
+    if (phase === 'menu') message(value ? 'Ready for a boss run.' : 'Connecting to online services…');
     if (!value && phase === 'searching') {
       cancelSearch('Connection lost. Reconnect, then try again.');
     }
@@ -81,7 +103,7 @@ function showMenu(text) {
   $('menu').hidden = false;
   $('game').hidden = true;
   phase = 'menu';
-  message(text || bootError || (connected ? 'Ready. Find a partner and explore the arena.' : 'Online services disconnected. Offline practice is available.'));
+  message(text || bootError || (connected ? 'Ready for a boss run.' : 'Online services disconnected. Solo play is available.'));
   updateMenu();
 }
 
@@ -107,7 +129,9 @@ async function connectMatch(match) {
   message(`Found ${match.peerName}. Connecting browsers…`);
   updateMenu();
   const peer = new Connection({
+    classId: selectedClass,
     position: position => game.receive(position),
+    game: state => game.receiveGame(state),
     ping: value => { $('ping').textContent = `PING ${value} ms`; },
     status: text => { $('game-notice').textContent = text; },
     ready() {
@@ -119,7 +143,7 @@ async function connectMatch(match) {
       $('fps').textContent = 'FPS …';
       $('game-notice').textContent = '';
       $('connection-label').textContent = `Online with ${match.peerName}`;
-      game.start({ name, peerName: match.peerName, host: match.host, connection: peer });
+      game.start({ name, peerName: match.peerName, host: match.host, connection: peer, classId: selectedClass, peerClass: peer.peerClass });
     },
     error(error) {
       if (id !== attempt) return;
@@ -164,11 +188,12 @@ $('practice').addEventListener('click', () => {
   $('game').hidden = false;
   $('ping').textContent = 'PING —';
   $('fps').textContent = 'FPS …';
-  $('connection-label').textContent = 'Offline practice';
+  $('connection-label').textContent = 'Solo run';
   $('game-notice').textContent = '';
-  game.start({ name });
+  game.start({ name, classId: selectedClass });
 });
 $('leave').addEventListener('click', () => { cleanup(); showMenu(); });
+$('outcome-menu').addEventListener('click', () => { cleanup(); showMenu(); });
 document.addEventListener('visibilitychange', () => {
   if (document.hidden && ['searching', 'connecting'].includes(phase)) cancelSearch('Search paused because this tab became inactive. Press Play online to search again.');
 });

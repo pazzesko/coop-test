@@ -1,14 +1,19 @@
 export class Input {
-  constructor(surface, stick, knob) {
+  constructor(surface, stick, knob, buttons = {}) {
     this.keys = new Set();
     this.vector = { x: 0, y: 0 };
     this.pointer = null;
     this.enabled = false;
     this.stick = stick;
     this.knob = knob;
+    this.attackHeld = false;
+    this.attackQueued = false;
+    this.dodgeQueued = false;
     window.addEventListener('keydown', event => {
-      if (!this.enabled || !['KeyW', 'KeyA', 'KeyS', 'KeyD', 'ArrowUp', 'ArrowLeft', 'ArrowDown', 'ArrowRight'].includes(event.code)) return;
+      if (!this.enabled || !['KeyW', 'KeyA', 'KeyS', 'KeyD', 'ArrowUp', 'ArrowLeft', 'ArrowDown', 'ArrowRight', 'Space', 'KeyJ', 'KeyK', 'ShiftLeft', 'ShiftRight'].includes(event.code)) return;
       event.preventDefault();
+      if (!event.repeat && ['KeyK', 'ShiftLeft', 'ShiftRight'].includes(event.code)) this.dodgeQueued = true;
+      if (!event.repeat && ['KeyJ', 'Space'].includes(event.code)) this.attackQueued = true;
       this.keys.add(event.code);
     });
     window.addEventListener('keyup', event => this.keys.delete(event.code));
@@ -39,7 +44,23 @@ export class Input {
       this.vector = distance ? { x: dx / distance * amount, y: dy / distance * amount } : { x: 0, y: 0 };
     });
     for (const type of ['pointerup', 'pointercancel', 'lostpointercapture']) {
-      surface.addEventListener(type, event => { if (event.pointerId === this.pointer) this.reset(); });
+      surface.addEventListener(type, event => { if (event.pointerId === this.pointer) this.clearStick(); });
+    }
+    for (const [kind, button] of Object.entries(buttons)) {
+      let pointer = null;
+      button.addEventListener('pointerdown', event => {
+        if (!this.enabled || pointer !== null) return;
+        event.preventDefault();
+        pointer = event.pointerId;
+        button.setPointerCapture(pointer);
+        if (kind === 'attack') { this.attackHeld = true; this.attackQueued = true; }
+        else this.dodgeQueued = true;
+      });
+      for (const type of ['pointerup', 'pointercancel', 'lostpointercapture']) button.addEventListener(type, event => {
+        if (event.pointerId !== pointer) return;
+        pointer = null;
+        if (kind === 'attack') this.attackHeld = false;
+      });
     }
   }
 
@@ -50,11 +71,30 @@ export class Input {
     return x || y ? { x, y } : this.vector;
   }
 
-  reset() {
-    this.keys.clear();
+  attacking() {
+    const active = this.attackQueued || this.attackHeld || this.keys.has('Space') || this.keys.has('KeyJ');
+    this.attackQueued = false;
+    return active;
+  }
+
+  dodging() {
+    const queued = this.dodgeQueued;
+    this.dodgeQueued = false;
+    return queued;
+  }
+
+  clearStick() {
     this.pointer = null;
     this.vector = { x: 0, y: 0 };
     this.stick.hidden = true;
     this.knob.style.transform = '';
+  }
+
+  reset() {
+    this.keys.clear();
+    this.clearStick();
+    this.attackHeld = false;
+    this.attackQueued = false;
+    this.dodgeQueued = false;
   }
 }

@@ -63,6 +63,7 @@ test('touch joystick base stays anchored and resets on release', async ({ browse
   await expect(page.locator('#joystick')).toBeHidden();
   // Rotation reflows the controls and resizes the canvas without scrolling.
   await page.setViewportSize({ width: 844, height: 390 });
+  await expect.poll(async () => (await page.locator('#arena').boundingBox()).width).toBe(844);
   const landscape = await page.locator('#arena').boundingBox();
   expect(landscape.width).toBe(844);
   expect(landscape.height).toBeGreaterThan(200);
@@ -112,4 +113,55 @@ test('unsupported fullscreen is disabled, and a rejected request gives feedback'
     await expect(page.locator('#game')).toBeVisible();
     await context.close();
   }
+});
+
+test('class selection persists, ranged attacks hurt the boss, and dodge has a cooldown', async ({ page }) => {
+  await page.goto('/');
+  await page.locator('#name-input').fill('Mage player');
+  await page.locator('#name-form button').click();
+  await page.locator('.class-card').filter({ hasText: 'Mage' }).click();
+  await page.reload();
+  await expect(page.locator('input[value="mage"]')).toBeChecked();
+  await page.locator('#practice').click();
+  await expect(page.locator('#hero-status')).toContainText('MAGE');
+  const hp = await page.locator('#boss-health').evaluate(element => element.value);
+  await page.keyboard.down('Space');
+  await expect.poll(() => page.locator('#boss-health').evaluate(element => element.value), { timeout: 5000 }).toBeLessThan(hp);
+  await page.keyboard.up('Space');
+  await page.locator('#dodge').click();
+  await expect(page.locator('#dodge-label')).toHaveText(/\d\.\ds/);
+  await expect(page.locator('#dodge-label')).toHaveText('DODGE', { timeout: 3000 });
+  const scale = await page.locator('#arena').evaluate(element => ({ x: parseFloat(element.style.width) / element.width, y: parseFloat(element.style.height) / element.height }));
+  expect(Number.isInteger(scale.x)).toBe(true);
+  expect(scale.x).toBe(scale.y);
+  await expect(page.locator('#arena')).toHaveCSS('image-rendering', 'pixelated');
+});
+
+test('two thumbs can move and hold attack independently', async ({ browser }) => {
+  const context = await browser.newContext({ viewport: { width: 390, height: 844 }, hasTouch: true, isMobile: true });
+  const page = await context.newPage();
+  await page.route('**/src/config.js', offlineConfig);
+  await page.goto('/');
+  await page.locator('#name-input').fill('Touch mage');
+  await page.locator('#name-form button').click();
+  await page.locator('.class-card').filter({ hasText: 'Mage' }).click();
+  await page.locator('#practice').click();
+  const pad = await page.locator('#movement-pad').boundingBox();
+  const attack = await page.locator('#attack').boundingBox();
+  const dodge = await page.locator('#dodge').boundingBox();
+  expect(attack.x).toBeGreaterThan(195);
+  expect(attack.y).toBeGreaterThan(650);
+  expect(dodge.width).toBeGreaterThanOrEqual(60);
+  const left = { id: 1, x: pad.x + pad.width / 2, y: pad.y + pad.height / 2 };
+  const right = { id: 2, x: attack.x + attack.width / 2, y: attack.y + attack.height / 2 };
+  const cdp = await context.newCDPSession(page);
+  await cdp.send('Input.dispatchTouchEvent', { type: 'touchStart', touchPoints: [left] });
+  await cdp.send('Input.dispatchTouchEvent', { type: 'touchStart', touchPoints: [left, right] });
+  await expect(page.locator('#joystick')).toBeVisible();
+  // Lift the movement thumb; the attack thumb must remain held.
+  await cdp.send('Input.dispatchTouchEvent', { type: 'touchEnd', touchPoints: [left] });
+  await expect(page.locator('#joystick')).toBeHidden();
+  await expect.poll(() => page.locator('#boss-health').evaluate(element => element.value), { timeout: 4000 }).toBeLessThan(760);
+  await cdp.send('Input.dispatchTouchEvent', { type: 'touchEnd', touchPoints: [] });
+  await context.close();
 });

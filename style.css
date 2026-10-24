@@ -39,17 +39,48 @@ button:focus-visible, input:focus-visible, a:focus-visible { outline: 3px solid 
 #online-list .empty-roster { color: #8298b5; font-size: 12px; }
 #presence-note { margin-bottom: 0; font-size: 11px; line-height: 1.5; color: #e2bc82; }
 #presence-note a { color: inherit; }
+#class-picker { display: grid; grid-template-columns: repeat(3, 1fr); gap: 8px; padding: 0; margin: 12px 0 0; border: 0; }
+#class-picker legend { color: #91a4bf; font-size: 11px; padding: 0 0 8px; }
+.class-card { position: relative; display: grid; justify-items: center; gap: 6px; padding: 10px 4px; margin: 0; border: 2px solid #34443d; background: #202b29; cursor: pointer; font-size: 11px; }
+.class-card:has(input:checked) { border-color: #d0b47a; background: #393b2b; color: #f0dfac; }
+.class-card:has(input:focus-visible) { outline: 2px solid #c8e1d9; outline-offset: 2px; }
+.class-card input { position: absolute; opacity: 0; width: 1px; height: 1px; margin: 0; padding: 0; }
+.class-card canvas { width: 48px; height: 56px; image-rendering: pixelated; }
+#class-description { font-size: 11px; color: #b8ba9a; min-height: 16px; margin: 8px 0 12px; }
 .controls-note { border-top: 1px solid #29364e; padding-top: 20px; margin-top: 25px; }
 .source { color: #91a4bf; font-size: 11px; text-decoration: none; }
-#game { --controls-height: calc(80px + env(safe-area-inset-bottom)); position: fixed; inset: 0; background: #0b1020; touch-action: none; overflow: hidden; user-select: none; -webkit-user-select: none; }
-#arena { display: block; width: 100%; height: calc(100% - var(--controls-height)); }
+#game { --controls-height: calc(128px + env(safe-area-inset-bottom)); position: fixed; inset: 0; background: #222e2b; touch-action: none; overflow: hidden; user-select: none; -webkit-user-select: none; }
+#playfield { position: relative; width: 100%; height: calc(100% - var(--controls-height)); overflow: hidden; }
+#arena { display: block; image-rendering: pixelated; }
 .hud { position: absolute; top: 0; left: 0; right: 0; padding: max(16px, env(safe-area-inset-top)) max(20px, env(safe-area-inset-right)) 30px max(20px, env(safe-area-inset-left)); background: linear-gradient(#0b1020dd, transparent); pointer-events: none; }
 #connection-label { display: block; font-size: 12px; color: #b8c9df; margin-top: 6px; max-width: calc(100% - 135px); overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
 .metrics { position: absolute; top: calc(max(16px, env(safe-area-inset-top)) + 43px); left: max(20px, env(safe-area-inset-left)); display: flex; gap: 5px; pointer-events: none; font: 10px ui-monospace, monospace; color: #c2d2e6; white-space: nowrap; }
 .metrics span { padding: 5px 6px; border: 1px solid #6983a02b; background: #0b1423b8; border-radius: 5px; }
-#game-notice { position: absolute; top: max(94px, calc(env(safe-area-inset-top) + 80px)); left: 50%; transform: translateX(-50%); text-align: center; color: #ffc98a; font-size: 12px; background: #101a2add; border-radius: 12px; padding: 10px 16px; max-width: 90%; pointer-events: none; }
+#boss-hud { position: absolute; top: max(94px, calc(env(safe-area-inset-top) + 82px)); left: max(16px, env(safe-area-inset-left)); right: max(16px, env(safe-area-inset-right)); max-width: 520px; margin: 0 auto; pointer-events: none; color: #eee0b6; font: bold 10px ui-monospace, monospace; letter-spacing: 1px; text-shadow: 1px 1px #1a201f; }
+#boss-hud > div { display: flex; justify-content: space-between; gap: 8px; margin-bottom: 5px; }
+#boss-number { color: #d7c9a6; font-size: 9px; letter-spacing: 0; }
+#boss-health { display: block; width: 100%; height: 12px; border: 2px solid #171f1d; background: #302d2d; border-radius: 0; appearance: none; }
+#boss-health::-webkit-progress-bar { background: #302d2d; }
+#boss-health::-webkit-progress-value { background: #b7664d; }
+#boss-health::-moz-progress-bar { background: #b7664d; }
+#game-notice { position: absolute; top: max(140px, calc(env(safe-area-inset-top) + 128px)); left: 50%; transform: translateX(-50%); text-align: center; color: #ffc98a; font-size: 12px; background: #101a2add; border-radius: 12px; padding: 10px 16px; max-width: 90%; pointer-events: none; }
 #game-notice:empty { display: none; }
-#bottom-controls { position: absolute; left: 0; right: 0; bottom: 0; height: var(--controls-height); padding: 10px max(20px, env(safe-area-inset-right)) calc(10px + env(safe-area-inset-bottom)) max(20px, env(safe-area-inset-left)); display: flex; align-items: center; justify-content: space-between; gap: 12px; border-top: 1px solid #30455e; background: linear-gradient(120deg, #122136, #0b1423); }
+#bottom-controls { position: absolute; left: 0; right: 0; bottom: 0; height: var(--controls-height); padding: 32px max(16px, env(safe-area-inset-right)) calc(8px + env(safe-area-inset-bottom)) max(16px, env(safe-area-inset-left)); display: flex; align-items: center; justify-content: space-between; gap: 10px; border-top: 2px solid #697265; background: #24312f; }
+.combat-info { position: absolute; top: 9px; left: 16px; right: 16px; display: flex; justify-content: space-between; gap: 12px; font: 10px ui-monospace, monospace; color: #e6d8ae; }
+#fight-status { color: #a7b7a7; font-size: 9px; text-align: right; }
+.combat-buttons { display: flex; align-items: center; gap: 12px; margin-left: auto; }
+.combat-buttons button { display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 3px; padding: 4px; border: 2px solid #d8bc82; background: #645039; box-shadow: 0 4px 0 #171f1c; color: #f5e6bd; font: bold 10px ui-monospace, monospace; border-radius: 12px; touch-action: none; }
+#attack { width: 82px; height: 86px; }
+#dodge { position: relative; overflow: hidden; width: 66px; height: 70px; border-color: #819d9c; background: #334a49; color: #d2e2da; }
+#dodge::after { content: ''; position: absolute; bottom: 0; left: 0; height: 3px; width: var(--ready, 100%); background: #a7c7bd; }
+.combat-buttons canvas { image-rendering: pixelated; width: 40px; height: 40px; pointer-events: none; }
+.combat-buttons span { pointer-events: none; }
+.combat-buttons button:active { box-shadow: 0 1px 0 #171f1c; transform: translateY(3px); }
+#outcome { position: absolute; z-index: 6; inset: 0; display: grid; place-items: center; padding: 24px; background: #17211ccc; }
+#outcome > div { width: min(100%, 340px); padding: 28px; border: 3px solid #a39770; background: #26322d; text-align: center; box-shadow: 6px 6px #121b17; }
+#outcome h2 { font: bold 30px ui-monospace, monospace; color: #e8d6a7; }
+#outcome p { font-size: 13px; line-height: 1.6; color: #b6c1ad; }
+#outcome-menu { margin-top: 12px; border-radius: 2px; background: #c2b17e; }
 .desktop-help { display: flex; align-items: center; gap: 5px; font-size: 11px; color: #91a4bf; }
 .desktop-help span { margin-left: 6px; }
 kbd { border: 1px solid #3b526f; padding: 5px; border-radius: 5px; color: #b8c9df; }
@@ -67,10 +98,11 @@ kbd { border: 1px solid #3b526f; padding: 5px; border-radius: 5px; color: #b8c9d
 #joystick-knob { position: absolute; left: 33px; top: 33px; width: 40px; height: 40px; background: #70e3bb99; border: 1px solid #a9f6dc; border-radius: 50%; }
 @media (max-width: 500px) { .panel { padding: 28px; } .hud { padding-left: 14px; padding-right: 14px; } .metrics { left: max(14px, env(safe-area-inset-left)); } }
 @media (pointer: coarse), (hover: none) {
-  #game { --controls-height: calc(170px + env(safe-area-inset-bottom)); }
+  #game { --controls-height: calc(184px + env(safe-area-inset-bottom)); }
   #movement-pad { display: block; }
   .desktop-help { display: none; }
 }
 @media (pointer: coarse) and (orientation: landscape), (hover: none) and (orientation: landscape) {
-  #game { --controls-height: calc(126px + env(safe-area-inset-bottom)); }
+  #game { --controls-height: calc(148px + env(safe-area-inset-bottom)); }
 }
+@media (max-width: 500px) { #fight-status { max-width: 140px; font-size: 8px; } .combat-buttons { gap: 8px; } #movement-pad { min-width: 110px; } }

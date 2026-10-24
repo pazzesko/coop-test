@@ -1,6 +1,6 @@
 # Coop Test
 
-A tiny two-player browser co-op sandbox. Original code and geometric artwork; no Pokémon game code or assets are included.
+A tiny two-player pixel-art boss fight. Original code and pixel artwork; no Pokémon game code or assets are included.
 
 **Play:** https://pazzesko.github.io/coop-test/
 
@@ -15,7 +15,25 @@ A tiny two-player browser co-op sandbox. Original code and geometric artwork; no
 - Compact FPS/ping labels inside the play area. Fullscreen toggles where the browser supports it; unsupported browsers keep working normally.
 - Smooth remote movement, application round-trip ping, and local rendering FPS.
 - Adaptive movement traffic: up to 20 updates/second while moving, one/second while idle, and three final-position sends after stopping.
-- Offline movement practice, even before Firebase is configured.
+- Three saved class choices: barbarian (axe cleave, high health), mage (fireball), and archer (rapid arrows).
+- Hold-to-attack and directional dodge controls, with independent multi-touch input and a visible dodge cooldown.
+- Grokk, a large orc with a mace, boss health bar, three telegraphed attack patterns, and an enraged phase below 45% health.
+- No respawns: a fallen hero watches their ally. Defeat only when the entire party falls; victory when the boss dies.
+- The same boss fight is available offline as a solo run, even before Firebase is configured.
+
+## How to play
+
+Choose a class in camp, then **Play online** for an automatically matched co-op run, or **Fight solo**.
+
+- **Mobile:** bottom-left stick to move; hold **Attack** at bottom-right. Tap **Dodge** while moving to roll in that direction (or in your last movement direction when stationary).
+- **Desktop:** WASD/arrows to move, hold **J / Space** to attack, **Shift / K** to dodge.
+- Attacks automatically aim at the orc. Barbarian needs to get close; mage and archer can attack at range. There is no friendly fire.
+- Yellow ground circles turn orange/red just before impact. Move clear or time a dodge for its brief invulnerability window.
+- Dodge recharges in 1.8 seconds. If you fall, you remain dead for that run. Return to camp after victory/defeat to start a new run.
+
+### Pixel-art consistency
+
+All world assets use **one source pixel per two world units**. Hero sprites, the much larger hand-drawn orc, stone tiles, warnings, projectiles and world lettering are rendered onto the same native pixel grid. The canvas uses a single integer CSS enlargement, nearest-neighbor rendering, and integer camera/sprite coordinates. Odd viewport sizes crop at most a couple of edge pixels rather than stretching the grid. No per-sprite scaling, antialiased world text, or rotated/resampled sprites are used. HUD/menu text and touch-control chrome remain normal accessible HTML.
 
 ## Stack
 
@@ -56,7 +74,13 @@ The initial queue watches only the latest 30 tickets and chooses randomly among 
 
 Local movement stays immediate. Movement packets include sequence numbers, a sender-relative timestamp, and moving/stopped state. Remote rendering interpolates a short snapshot history about 100 ms behind the estimated sender timeline, which smooths uneven delivery without requiring synchronized device clocks. It holds the latest position if packets stop rather than predicting through walls. Movement restarts after an idle period do not interpolate across the entire idle heartbeat gap.
 
-Idle position traffic is reduced from approximately 20 packets/second to one/second (95% fewer position packets, not 95% less total connection traffic). After stopping, the final position is sent three times over the unreliable movement channel; the idle heartbeat also repairs a lost final position. Ping/control traffic is unchanged. Older peers without timestamp metadata are still supported.
+Idle position traffic is reduced from approximately 20 packets/second to one/second (95% fewer position packets, not 95% less total connection traffic). After stopping, the final position is sent three times over the unreliable movement channel; the idle heartbeat also repairs a lost final position. The movement decoder tolerates missing timestamps, but the boss-fight protocol requires both players to refresh to the same supported version.
+
+### Fight authority
+
+The room initiator is the authoritative **host** for boss AI, telegraph deadlines, projectiles, health, attack/dodge cooldowns, deaths and the outcome. Each browser still owns its immediate movement. Guest action requests are sequenced and cooldown-checked by the host; guests cannot report damage or declare victory. The guest predicts attack/dodge animation and reconciles against acknowledged host snapshots. Compact fight snapshots travel over the reliable WebRTC control channel about 10 times/second; movement stays on the independent unreliable channel. Boss/projectile rendering is smoothed between snapshots. No gameplay updates go through Firebase.
+
+When the host is suspended, a guest freezes its local fight after a short stale-snapshot timeout instead of freely attacking frozen enemies. There is no host migration. This is not a trusted-server anti-cheat architecture: a malicious host or forged movement is still outside the prototype's security scope.
 
 ### WebRTC and TURN limitations
 
@@ -95,7 +119,7 @@ npx playwright install --with-deps chromium
 npm run test:browser
 ```
 
-The default browser run tests offline practice and the anchored touch joystick. Online tests are skipped unless explicitly enabled, and **never use the production Firebase project**.
+The default browser run tests solo combat, persistent classes, attack/dodge cooldowns, two-thumb touch input, fullscreen, and the anchored joystick. Online tests cover pairing, synchronized boss health, rejection of guest-forged victory, and the no-respawn party defeat rule. They are skipped unless explicitly enabled, and **never use the production Firebase project**.
 
 For rules and online end-to-end tests, install Firebase CLI and Java 21+, then run the emulator commands below. The online tests inject demo config and use real WebRTC between isolated browser contexts.
 

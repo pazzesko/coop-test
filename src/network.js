@@ -1,5 +1,6 @@
 import { iceServers } from './config.js';
 import { validPosition } from './world.js';
+import { CLASSES, PROTOCOL, classOf } from './combat.js';
 
 export class Connection {
   constructor(events) {
@@ -73,7 +74,7 @@ export class Connection {
     channel.onopen = () => this.ready();
     channel.onclose = () => { if (!this.closed) this.fail(new Error('Your partner disconnected.')); };
     channel.onmessage = event => {
-      if (typeof event.data !== 'string' || event.data.length > 2048) return;
+      if (typeof event.data !== 'string' || event.data.length > 16384) return;
       let message;
       try { message = JSON.parse(event.data); } catch { return; }
       if (!message || typeof message !== 'object') return;
@@ -85,7 +86,15 @@ export class Connection {
           this.events.position(message);
         }
       } else {
-        if (message.type === 'ready') { this.remoteReady = true; this.ready(); }
+        if (message.type === 'ready') {
+          if (message.version !== PROTOCOL || !Object.hasOwn(CLASSES, message.classId)) {
+            this.fail(new Error('Game version changed. Both players must refresh before playing.'));
+            return;
+          }
+          this.peerClass = message.classId;
+          this.remoteReady = true; this.ready();
+        }
+        if (message.type === 'action' || message.type === 'fight') this.events.game?.(message);
         if (message.type === 'leave') this.fail(new Error('Your partner left the arena.'));
         if (message.type === 'ping' && Number.isSafeInteger(message.id)) this.sendControl({ type: 'pong', id: message.id });
         if (message.type === 'pong' && this.pendingPings.has(message.id)) {
@@ -102,7 +111,7 @@ export class Connection {
     if (this.closed || this.started || this.control?.readyState !== 'open' || this.movement?.readyState !== 'open') return;
     if (!this.localReady) {
       this.localReady = true;
-      this.sendControl({ type: 'ready' });
+      this.sendControl({ type: 'ready', version: PROTOCOL, classId: classOf(this.events.classId) });
     }
     if (!this.remoteReady) return;
     this.started = true;

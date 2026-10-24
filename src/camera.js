@@ -1,13 +1,11 @@
 import { WIDTH, HEIGHT } from './world.js';
+import { ART_UNIT } from './art.js';
 
-export function cameraFor(width, height, focus) {
-  // Cover the play area, not the whole map: portrait gets a close, tall view.
-  const scale = Math.max(width / WIDTH, height / HEIGHT);
-  const viewWidth = width / scale;
-  const viewHeight = height / scale;
+// Inputs are native art-pixel viewport dimensions and world-unit focus.
+// Integer camera origins keep scenery, actors and effects on one pixel grid.
+export function pixelCameraFor(width, height, focus) {
   return {
-    scale,
-    x: Math.max(0, Math.min(WIDTH - viewWidth, focus.x - viewWidth / 2)),
-    y: Math.max(0, Math.min(HEIGHT - viewHeight, focus.y - viewHeight / 2)),
+    x: Math.round(Math.max(0, Math.min(WIDTH / ART_UNIT - width, focus.x / ART_UNIT - width / 2))),
+    y: Math.round(Math.max(0, Math.min(HEIGHT / ART_UNIT - height, focus.y / ART_UNIT - height / 2))),
   };
 }

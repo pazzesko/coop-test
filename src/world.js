@@ -11,11 +11,10 @@ export const WALLS = [
   { x: 710, y: 180, w: 180, h: 48 },
   { x: 230, y: 492, w: 180, h: 48 },
   { x: 710, y: 492, w: 180, h: 48 },
-  { x: 536, y: 292, w: 48, h: 136 },
 ];
 
 export function spawn(host = true) {
-  return { x: host ? 460 : 660, y: 360 };
+  return { x: host ? 480 : 640, y: 440 };
 }
 
 export function blocked(x, y) {
@@ -26,17 +25,17 @@ export function blocked(x, y) {
   });
 }
 
-export function move(player, dx, dy, dt) {
+export function move(player, dx, dy, dt, speed = SPEED) {
   const length = Math.hypot(dx, dy);
   if (!length || !Number.isFinite(length)) return;
   dx /= Math.max(1, length);
   dy /= Math.max(1, length);
   // Short substeps prevent passing through walls during slow frames.
-  const steps = Math.max(1, Math.ceil(SPEED * dt / 6));
+  const steps = Math.max(1, Math.ceil(speed * dt / 6));
   for (let i = 0; i < steps; i++) {
-    const x = Math.max(24 + RADIUS, Math.min(WIDTH - 24 - RADIUS, player.x + dx * SPEED * dt / steps));
+    const x = Math.max(24 + RADIUS, Math.min(WIDTH - 24 - RADIUS, player.x + dx * speed * dt / steps));
     if (!blocked(x, player.y)) player.x = x;
-    const y = Math.max(24 + RADIUS, Math.min(HEIGHT - 24 - RADIUS, player.y + dy * SPEED * dt / steps));
+    const y = Math.max(24 + RADIUS, Math.min(HEIGHT - 24 - RADIUS, player.y + dy * speed * dt / steps));
     if (!blocked(player.x, y)) player.y = y;
   }
 }
