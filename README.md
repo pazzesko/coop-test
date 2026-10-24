@@ -20,9 +20,9 @@ A tiny two-player pixel-art boss fight. Original code and pixel artwork; no Pok�
 - Grokk, a large orc with a mace, boss health bar, three telegraphed attack patterns, and an enraged phase below 45% health.
 - No respawns: a fallen hero watches their ally. Defeat only when the entire party falls; victory when the boss dies.
 - The same boss fight is available offline as a solo run, even before Firebase is configured.
-- Original dark arcade-fantasy art: moonlit stone, crimson cloth, rim-lit armor, runic paving, bones and animated braziers. Inspired by the mood of classic gothic arcade games, not copied sprites.
+- Original cartoon-brawler fantasy art: expressive faces, rounded silhouettes, dark outlines, saturated costumes, chunky paving and animated braziers. No copied characters or sprites.
 - Authored attack poses: axe anticipation/swing/recovery, staff lift/cast, bow draw/release, low dodge silhouettes, and the orc's mace lift/overhead hold/slam/recovery.
-- Short shaded hit flashes, directional weapon trails, fireball tails, impact sparks, ground cracks, floating damage numbers and dodge afterimages. Cosmetic particles and numbers are capped.
+- Shaking paving and lifting rubble warn of attacks; impacts throw little rocks, dust and smoke, leaving temporary cracked ground instead of artificial circle markers. Hit flashes, weapon trails, fireball tails, damage numbers and dodge afterimages add punch.
 
 ## How to play
 
@@ -31,14 +31,14 @@ Choose a class in camp, then **Play online** for an automatically matched co-op 
 - **Mobile:** bottom-left stick to move; hold **Attack** at bottom-right. Tap **Dodge** while moving to roll in that direction (or in your last movement direction when stationary).
 - **Desktop:** WASD/arrows to move, hold **J / Space** to attack, **Shift / K** to dodge.
 - Attacks automatically aim at the orc. Barbarian needs to get close; mage and archer can attack at range. There is no friendly fire. A brief class-specific wind-up releases the actual hit/projectile on the strike frame; falling during wind-up cancels that attack.
-- Yellow ground circles turn orange/red just before impact. Move clear or time a dodge for its brief invulnerability window.
+- Cracked ground trembles, stones lift and dust leaks out before impact; cracks brighten as the strike approaches. Move clear of the disturbed paving or time a dodge for its brief invulnerability window.
 - Dodge recharges in 1.8 seconds. If you fall, you remain dead for that run. Return to camp after victory/defeat to start a new run.
 
 ### Pixel-art consistency
 
-All world assets use **one source pixel per two world units**. Hero sprites (32×40 source pixels), the much larger hand-drawn orc (80×88), stone tiles, warnings, projectiles, particles and world lettering are rendered onto the same native pixel grid. The canvas uses a single integer CSS enlargement, nearest-neighbor rendering, and integer camera/sprite coordinates. Odd viewport sizes crop at most a couple of edge pixels rather than stretching the grid. No per-sprite scaling, antialiased world text, or arbitrarily rotated/resampled sprites are used. Left/right poses are cached lossless pixel reflections. HUD/menu text and touch-control chrome remain normal accessible HTML.
+All world assets use **one source pixel per two world units**. Hero sprites (56×60 source pixels), the much larger hand-drawn orc (100×108), stone tiles, warnings, projectiles, particles and world lettering are rendered onto the same native pixel grid. Shaped silhouettes use integer scanline polygons, not antialiased vectors. The canvas uses a single integer CSS enlargement, nearest-neighbor rendering, and integer camera/sprite coordinates. Odd viewport sizes crop at most a couple of edge pixels rather than stretching the grid. No per-sprite scaling, antialiased world text, or arbitrarily rotated/resampled sprites are used. Left/right poses are cached lossless pixel reflections. HUD/menu text and touch-control chrome remain normal accessible HTML.
 
-Effects never pause the simulation or alter hitboxes. Host-authored effect IDs travel in the existing bounded fight snapshots; clients deduplicate them and catch up late arrivals instead of replaying old explosions. The particle pool is capped at 180, floating numbers at 12, and sprite/tint/torch art is cached. `prefers-reduced-motion: reduce` disables screen shake, dodge afterimages, bright hit tints and ambient embers, and reduces impact particles; readable attack poses and danger circles remain.
+Effects never pause the simulation or alter hitboxes. Host-authored effect IDs travel in the existing bounded fight snapshots; clients deduplicate them and catch up late arrivals instead of replaying old explosions. Optional source IDs keep warning and impact rubble layouts consistent. Pools are capped at 180 particles, 36 smoke puffs, 8 ground scars and 12 floating numbers. Sprite/tint/torch art and ground-crack rasters are cached; smoke draws behind actors to keep silhouettes readable. `prefers-reduced-motion: reduce` disables screen shake, ground tremors, dodge afterimages, bright hit tints and ambient embers, and reduces impact particles; readable attack poses and disturbed-ground warnings remain.
 
 ## Stack
 

@@ -1,8 +1,10 @@
 import { Input } from './input.js';
 import { MovementSender, RemoteMovement } from './movement.js';
 import { Fight, CLASSES, classOf, heroAction, moveHero, validFight, DODGE_COOLDOWN } from './combat.js';
-import { createArt, pixelViewport, pixelRing, pixelText, pixelLine } from './art.js';
-import { pixelCameraFor } from './camera.js';
+import { createArt, pixelViewport, pixelText, pixelLine, HERO_SIZE, BOSS_SIZE } from './art.js';
+import { pixelOval } from './pixel.js';
+import { drawGround } from './ground.js';
+import { battleCameraFor } from './camera.js';
 import { heroAnimation, bossAnimation } from './animation.js';
 import { Effects } from './effects.js';
 
@@ -186,7 +188,7 @@ export class Game {
     this.elements.bossNumber.textContent = `${boss.hp} / ${boss.maxHp}`;
     this.elements.bossName.textContent = boss.hp < boss.maxHp * 0.45 ? 'GROKK · ENRAGED' : 'GROKK, THE IRON MAW';
     this.elements.heroStatus.textContent = player.hp <= 0 ? 'FALLEN · NO RESPAWNS' : `${CLASSES[player.classId].name.toUpperCase()} · ${player.hp} / ${player.maxHp} HP`;
-    this.elements.fightStatus.textContent = stalled ? 'Waiting for host…' : player.hp <= 0 && !this.fight.outcome ? 'Watch your ally. The fight is not over.' : 'Hold attack · dodge the marked circles';
+    this.elements.fightStatus.textContent = stalled ? 'Waiting for host…' : player.hp <= 0 && !this.fight.outcome ? 'Watch your ally. The fight is not over.' : 'Hold attack · escape shaking ground';
     const dodge = Math.max(0, player.dodgeAt - this.fight.t);
     this.elements.dodgeLabel.textContent = dodge > 0 ? `${dodge.toFixed(1)}s` : 'DODGE';
     this.elements.dodge.style.setProperty('--ready', `${Math.max(0, 100 - dodge / DODGE_COOLDOWN * 100)}%`);
@@ -202,11 +204,9 @@ export class Game {
     const ctx = this.ctx;
     const { width, height } = this.viewport;
     const target = this.local.hp <= 0 && this.remote?.hp > 0 ? this.remoteRender : this.local;
-    const focus = { ...target };
-    if (Math.hypot(target.x - this.fight.boss.x, target.y - this.fight.boss.y) < 400) focus.y = Math.min(target.y, this.fight.boss.y - 10);
-    const camera = pixelCameraFor(width, height, focus);
+    const camera = battleCameraFor(width, height, target, this.fight.boss);
     ctx.setTransform(1, 0, 0, 1, 0, 0);
-    ctx.fillStyle = '#191e32'; ctx.fillRect(0, 0, width, height);
+    ctx.fillStyle = '#26374e'; ctx.fillRect(0, 0, width, height);
     const shake = this.effects.shake(this.visualNow);
     ctx.save(); ctx.translate(-camera.x + shake.x, -camera.y + shake.y);
     ctx.drawImage(this.art.floor, 0, 0);
@@ -219,32 +219,20 @@ export class Game {
         ctx.fillRect(torch.x + (Math.floor(this.visualNow * 7 + i * 3) % 7) - 3, torch.y - 25 - Math.floor(this.visualNow * 12 + i * 7) % 17, 1, 1);
       }
     }
-    for (const circle of this.fight.circles) {
-      const remaining = circle.hitAt - this.fight.t;
-      const x = Math.round(circle.x / 2), y = Math.round(circle.y / 2), r = Math.round(circle.r / 2);
-      if (remaining > 0) {
-        ctx.fillStyle = remaining < 0.35 ? '#ad503b55' : '#ba8c4133';
-        for (let row = -r; row <= r; row += 2) {
-          const extent = Math.floor(Math.sqrt(r * r - row * row));
-          ctx.fillRect(x - extent, y + row, extent * 2 + 1, 1);
-        }
-        pixelRing(ctx, x, y, r, remaining < 0.35 ? '#f0a075' : '#d7ac5f', 2);
-        pixelRing(ctx, x, y, Math.max(1, r * (1 - remaining / 1.8)), '#d7ac5f', 1);
-        pixelText(ctx, 'DODGE', x, y - 2, '#fff0b6');
-      } else {
-        const age = Math.max(0, this.fight.t - circle.hitAt);
-        pixelRing(ctx, x, y, Math.min(r + 10, r * (0.45 + age * 2)), '#dfc4b3', 2);
-        for (let i = 0; i < 7; i++) {
-          const angle = i * Math.PI * 2 / 7 + circle.id;
-          const reach = Math.min(r, r * (age * 5));
-          pixelLine(ctx, x, y, x + Math.cos(angle) * reach, y + Math.sin(angle) * reach, '#141b2d');
-          pixelLine(ctx, x + 1, y, x + Math.cos(angle) * reach + 1, y + Math.sin(angle) * reach, '#77677c');
-        }
-      }
+    for (const scar of this.effects.scars) drawGround(ctx, this.art, scar, this.visualNow, this.effects.reduced, true);
+    for (const zone of this.fight.circles) if (zone.hitAt > this.fight.t) drawGround(ctx, this.art, zone, this.fight.t, this.effects.reduced);
+    // Dust stays behind actors so it never hides a player's silhouette or feet.
+    for (const puff of this.effects.smoke) {
+      const age = this.visualNow - puff.start;
+      if (age < 0) continue;
+      const progress = age / puff.life;
+      ctx.globalAlpha = Math.min(0.48, (1 - progress) * 0.7);
+      ctx.drawImage(this.art.smoke[Math.min(5, 1 + Math.floor(progress * 5))], Math.round(puff.x + puff.vx * age) - 12, Math.round(puff.y + puff.vy * age) - 18);
     }
+    ctx.globalAlpha = 1;
     for (const trail of this.trails) {
       ctx.globalAlpha = Math.max(0, 0.26 * (1 - (this.visualNow - trail.start) / 0.24));
-      ctx.drawImage(this.art.heroes[trail.classId].dodge[0][trail.left ? 'flashLeft' : 'flashRight'], trail.x - 16, trail.y - 38);
+      ctx.drawImage(this.art.heroes[trail.classId].dodge[0][trail.left ? 'flashLeft' : 'flashRight'], trail.x - HERO_SIZE.x, trail.y - HERO_SIZE.y);
     }
     ctx.globalAlpha = 1;
     const entities = this.fight.players.map((player, index) => ({ y: index === this.localIndex ? player.y : this.remoteRender.y, player, index }));
@@ -278,8 +266,9 @@ export class Game {
       const age = this.visualNow - particle.start;
       if (age < 0) continue;
       ctx.fillStyle = particle.color;
-      const x = Math.round(particle.x + particle.vx * age), y = Math.round(particle.y + particle.vy * age + 35 * age * age);
-      ctx.fillRect(x, y, particle.size, particle.size);
+      const x = Math.round(particle.x + particle.vx * age), y = Math.round(particle.y + particle.vy * age + (particle.kind === 'rock' ? 100 : 35) * age * age);
+      if (particle.kind === 'rock') ctx.drawImage(this.art.rocks[particle.frame], x - 4, y - 4);
+      else ctx.fillRect(x, y, particle.size, particle.size);
     }
     for (const number of this.effects.numbers) {
       const age = this.visualNow - number.start;
@@ -291,7 +280,7 @@ export class Game {
   drawBoss(ctx) {
     const boss = this.fight.boss;
     const x = Math.round(this.bossRender.x / 2), y = Math.round(this.bossRender.y / 2);
-    ctx.fillStyle = '#151a2b'; ctx.fillRect(x - 23, y - 3, 46, 7); ctx.fillRect(x - 18, y - 5, 36, 11);
+    ctx.globalAlpha = 0.55; pixelOval(ctx, x, y, 25, 6, '#17243b'); ctx.globalAlpha = 1;
     const target = this.fight.players.filter(player => player.hp > 0)
       .sort((a, b) => Math.hypot(a.x - boss.x, a.y - boss.y) - Math.hypot(b.x - boss.x, b.y - boss.y))[0];
     if (target && Math.abs(target.x - boss.x) > 12) this.bossFacingLeft = target.x < boss.x;
@@ -300,7 +289,7 @@ export class Game {
     const flash = !this.effects.reduced && this.effects.bossFlashUntil > this.visualNow;
     const key = flash ? (this.bossFacingLeft ? 'flashLeft' : 'flashRight') : (this.bossFacingLeft ? 'left' : 'right');
     ctx.globalAlpha = boss.hp <= 0 ? 0.55 : 1;
-    ctx.drawImage(sprite[key], x - 40, y - 82);
+    ctx.drawImage(sprite[key], x - (this.bossFacingLeft ? BOSS_SIZE.width - BOSS_SIZE.x : BOSS_SIZE.x), y - BOSS_SIZE.y);
     ctx.globalAlpha = 1;
   }
 
@@ -312,12 +301,12 @@ export class Game {
       pixelText(ctx, this.names[index], x, y - 19, '#b0b4a8');
       return;
     }
-    ctx.fillStyle = '#202b26'; ctx.fillRect(x - 8, y - 2, 16, 4);
+    ctx.globalAlpha = 0.55; pixelOval(ctx, x, y, 13, 4, '#1b2b42'); ctx.globalAlpha = 1;
     const animation = heroAnimation(player, this.fight.t, index === this.localIndex ? this.walking : this.remoteWalking);
     if (Math.abs(this.fight.boss.x - position.x) > 12) this.facing[index] = position.x > this.fight.boss.x;
     const flash = !this.effects.reduced && player.hurtUntil - this.fight.t > 0.21;
     const key = flash ? (this.facing[index] ? 'flashLeft' : 'flashRight') : (this.facing[index] ? 'left' : 'right');
-    ctx.drawImage(this.art.heroes[player.classId][animation.pose][animation.frame][key], x - 16, y - 38);
+    ctx.drawImage(this.art.heroes[player.classId][animation.pose][animation.frame][key], x - HERO_SIZE.x, y - HERO_SIZE.y);
     if (player.classId === 'barbarian' && animation.pose === 'attack' && animation.frame > 0) {
       const heading = Math.atan2(this.fight.boss.y - position.y, this.fight.boss.x - position.x);
       ctx.globalAlpha = animation.frame === 1 ? 1 : 0.35;
@@ -328,11 +317,14 @@ export class Game {
       }
       ctx.globalAlpha = 1;
     }
-    if (player.classId === 'mage' && animation.pose === 'attack' && animation.frame === 0) pixelRing(ctx, x, y - 2, 14, '#8ec9cd', 1);
-    ctx.fillStyle = '#1a1c31'; ctx.fillRect(x - 12, y - 45, 24, 4);
+    if (player.classId === 'mage' && animation.pose === 'attack' && animation.frame === 0) {
+      const sx = x + (this.facing[index] ? -14 : 14), sy = y - 39;
+      pixelLine(ctx, sx - 3, sy, sx + 3, sy, '#baf9df'); pixelLine(ctx, sx, sy - 4, sx, sy + 4, '#baf9df');
+    }
+    ctx.fillStyle = '#19273c'; ctx.fillRect(x - 14, y - HERO_SIZE.y - 5, 28, 4);
     ctx.fillStyle = index === this.localIndex ? '#a6c58c' : '#92b4c0';
-    ctx.fillRect(x - 11, y - 44, Math.round(22 * player.hp / player.maxHp), 2);
-    pixelText(ctx, this.names[index], x, y - 53, index === this.localIndex ? '#efe4bc' : '#c7dde2');
+    ctx.fillRect(x - 13, y - HERO_SIZE.y - 4, Math.round(26 * player.hp / player.maxHp), 2);
+    pixelText(ctx, this.names[index], x, y - HERO_SIZE.y - 12, index === this.localIndex ? '#fff0b3' : '#c9f5ff');
   }
 
   stop() {

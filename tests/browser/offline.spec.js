@@ -169,11 +169,11 @@ test('two thumbs can move and hold attack independently', async ({ browser }) =>
 test('attack sheets contain distinct poses on a shared native pixel grid', async ({ page }) => {
   await page.goto('/');
   const result = await page.evaluate(async () => {
-    const { createArt } = await import('/src/art.js');
+    const { createArt, HERO_SIZE } = await import('/src/art.js');
     const art = createArt();
     const heroes = Object.values(art.heroes).map(hero => ({
       distinct: new Set(hero.attack.map(frame => frame.right.toDataURL())).size,
-      dimensions: Object.values(hero).flat().every(frame => frame.right.width === 32 && frame.right.height === 40),
+      dimensions: Object.values(hero).flat().every(frame => frame.right.width === HERO_SIZE.width && frame.right.height === HERO_SIZE.height),
     }));
     const boss = ['windup', 'overhead', 'slam', 'recover'].map(pose => art.orc[pose][0].right.toDataURL());
     const flash = art.orc.idle[0].flashRight;
@@ -185,4 +185,28 @@ test('attack sheets contain distinct poses on a shared native pixel grid', async
   expect(result.heroes.every(hero => hero.distinct === 3 && hero.dimensions)).toBe(true);
   expect(result.bossPoses).toBe(4);
   expect(result.flashColors).toBeGreaterThan(8);
+});
+
+test('ground phases cache native rasters and reuse the warning layout on impact', async ({ page }) => {
+  await page.goto('/');
+  const result = await page.evaluate(async () => {
+    const { createArt } = await import('/src/art.js');
+    const { drawGround, groundLayout } = await import('/src/ground.js');
+    const art = createArt(), canvas = document.createElement('canvas');
+    canvas.width = canvas.height = 256;
+    const ctx = canvas.getContext('2d');
+    const zone = { id: 812, x: 256, y: 256, r: 104, hitAt: 2 };
+    const images = [];
+    for (const time of [1, 1.8, 2.1]) {
+      ctx.clearRect(0, 0, 256, 256);
+      drawGround(ctx, art, zone, time);
+      images.push(canvas.toDataURL());
+    }
+    const layout = groundLayout(zone.id, zone.r), layer = layout.layers[0].canvas;
+    drawGround(ctx, art, zone, 1);
+    drawGround(ctx, art, { ...zone, id: 813, source: 812 }, 2.2, false, true);
+    return { phases: Object.keys(layout.layers).length, distinct: new Set(images).size,
+      reused: layer === layout.layers[0].canvas, sourceReused: groundLayout(812, 104) === layout };
+  });
+  expect(result).toEqual({ phases: 3, distinct: 3, reused: true, sourceReused: true });
 });

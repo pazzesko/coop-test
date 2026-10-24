@@ -1,6 +1,6 @@
 import test from 'node:test';
 import assert from 'node:assert/strict';
-import { pixelCameraFor } from '../src/camera.js';
+import { pixelCameraFor, battleCameraFor } from '../src/camera.js';
 import { pixelViewport, ART_UNIT } from '../src/art.js';
 import { WIDTH, HEIGHT, spawn } from '../src/world.js';
 
@@ -20,5 +20,16 @@ test('pixel camera stays within map bounds across portrait, landscape, and deskt
       assert.ok(camera.x + viewport.width <= WIDTH / ART_UNIT);
       assert.ok(camera.y + viewport.height <= HEIGHT / ART_UNIT);
     }
+  }
+});
+
+test('battle framing keeps the retreating hero visible with the larger boss', () => {
+  const viewport = pixelViewport(1280, 672);
+  for (const y of [440, 550, 681]) {
+    const player = { x: 480, y };
+    const camera = battleCameraFor(viewport.width, viewport.height, player, { x: 560, y: 360 });
+    const foot = player.y / ART_UNIT - camera.y;
+    assert.ok(foot >= 0 && foot < viewport.height);
+    assert.ok(Number.isInteger(camera.y));
   }
 });

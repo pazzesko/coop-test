@@ -11,6 +11,8 @@ export class Effects {
     this.reduced = reduced;
     this.particles = [];
     this.numbers = [];
+    this.smoke = [];
+    this.scars = [];
     this.lastId = 0;
     this.shakeUntil = 0;
     this.shakePower = 0;
@@ -30,8 +32,21 @@ export class Effects {
         const seed = ((event.id * 97 + i * 137) % 997) / 997;
         const angle = seed * Math.PI * 2;
         const speed = (event.kind === 'slam' ? 30 : 15) + ((i * 17) % 33);
-        this.particles.push({ x: event.x / 2, y: event.y / 2, vx: Math.cos(angle) * speed, vy: Math.sin(angle) * speed - 12,
-          start, life: 0.25 + seed * 0.35, color: colors[i % colors.length], size: i % 5 === 0 ? 2 : 1 });
+        const rock = event.kind === 'slam';
+        const spread = rock ? event.value * 0.13 : 0;
+        this.particles.push({ x: event.x / 2 + Math.cos(angle) * spread, y: event.y / 2 + Math.sin(angle) * spread,
+          vx: Math.cos(angle) * speed, vy: Math.sin(angle) * speed - (rock ? 35 : 12), kind: rock ? 'rock' : 'spark', frame: i % 4,
+          start, life: rock ? 0.55 + seed * 0.25 : 0.25 + seed * 0.35, color: colors[i % colors.length], size: i % 5 === 0 ? 2 : 1 });
+      }
+      if (event.kind === 'slam') {
+        this.scars.push({ id: event.id, source: event.source || event.id, x: event.x, y: event.y, r: event.value, hitAt: start, start });
+        const puffs = this.reduced ? 3 : 12;
+        for (let i = 0; i < puffs; i++) {
+          const angle = i * 2.39996 + event.id;
+          const reach = event.value / 2 * Math.sqrt((i + 0.5) / puffs) * 0.75;
+          this.smoke.push({ x: event.x / 2 + Math.cos(angle) * reach, y: event.y / 2 + Math.sin(angle) * reach,
+            vx: Math.cos(angle) * 9, vy: -10 - i % 5, start, life: 0.7 + (i % 4) * 0.1 });
+        }
       }
       if (event.value > 0 && ['hit', 'fire-hit', 'hurt'].includes(event.kind)) {
         this.numbers.push({ x: event.x / 2, y: event.y / 2 - 25, value: event.value, color: event.kind === 'hurt' ? '#eea49b' : '#ffe2a6', start });
@@ -44,11 +59,15 @@ export class Effects {
     }
     if (this.particles.length > 180) this.particles.splice(0, this.particles.length - 180);
     if (this.numbers.length > 12) this.numbers.splice(0, this.numbers.length - 12);
+    if (this.smoke.length > 36) this.smoke.splice(0, this.smoke.length - 36);
+    if (this.scars.length > 8) this.scars.splice(0, this.scars.length - 8);
   }
 
   update(now) {
     this.particles = this.particles.filter(p => now - p.start < p.life);
     this.numbers = this.numbers.filter(p => now - p.start < 0.65);
+    this.smoke = this.smoke.filter(p => now - p.start < p.life);
+    this.scars = this.scars.filter(p => now - p.start < 1.2);
   }
 
   shake(now) {

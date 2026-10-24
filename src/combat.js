@@ -63,8 +63,8 @@ export class Fight {
     return true;
   }
 
-  effect(kind, x, y, value = 0, owner = -1) {
-    this.effects.push({ id: ++this.id, kind, x, y, t: this.t, value, owner });
+  effect(kind, x, y, value = 0, owner = -1, source = 0) {
+    this.effects.push({ id: ++this.id, kind, x, y, t: this.t, value, owner, source });
     if (this.effects.length > 24) this.effects.shift();
   }
 
@@ -137,7 +137,7 @@ export class Fight {
     for (const circle of this.circles) {
       if (circle.hit || this.t < circle.hitAt) continue;
       circle.hit = true;
-      this.effect('slam', circle.x, circle.y, circle.r);
+      this.effect('slam', circle.x, circle.y, circle.r, -1, circle.id);
       for (const player of alive) {
         if (this.t <= player.invulnerableUntil || Math.hypot(player.x - circle.x, player.y - circle.y) > circle.r + RADIUS / 2) continue;
         player.hp = Math.max(0, player.hp - (circle.r > 150 ? 52 : 42));
@@ -189,6 +189,7 @@ export function validFight(state, count = 2) {
       && Number.isInteger(shot.owner) && shot.owner >= 0 && shot.owner < count && shot.damage > 0 && shot.damage <= 100)
     && state.effects.every(effect => effect && ['id', 'x', 'y', 't', 'value', 'owner'].every(key => finite(effect[key]))
       && Number.isSafeInteger(effect.id) && effect.id > 0 && effect.value >= 0 && effect.value <= 200
+      && (effect.source === undefined || (Number.isSafeInteger(effect.source) && effect.source >= 0 && effect.source < 1e7))
       && ['dodge', 'cleave', 'cast', 'bow', 'hit', 'fire-hit', 'slam', 'hurt', 'death'].includes(effect.kind));
 }
 
