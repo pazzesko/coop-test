@@ -1,0 +1,52 @@
+{
+  "rules": {
+    ".read": false,
+    ".write": false,
+    "v1": {
+      "presence": {
+        ".read": "auth != null",
+        "$uid": {
+          "$connection": {
+            ".write": "auth != null && auth.uid === $uid",
+            ".validate": "newData.val() === true"
+          }
+        }
+      },
+      "tickets": {
+        ".indexOn": ["createdAt"],
+        ".read": "auth != null && query.orderByChild === 'createdAt' && query.limitToLast <= 30",
+        "$uid": {
+          ".read": "auth != null",
+          ".write": "auth != null && auth.uid === $uid",
+          ".validate": "newData.hasChildren(['token', 'name', 'state', 'createdAt', 'expiresAt']) && (!data.exists() || newData.child('token').val() !== data.child('token').val() || ((!data.child('claim').exists() || newData.child('claim').val() === data.child('claim').val() || (!newData.child('claim').exists() && auth.uid === data.child('claim/uid').val())) && newData.child('name').val() === data.child('name').val() && newData.child('createdAt').val() === data.child('createdAt').val()))",
+          "token": { ".validate": "newData.isString() && newData.val().length === 36" },
+          "name": { ".validate": "newData.isString() && newData.val().length >= 1 && newData.val().length <= 20" },
+          "state": { ".validate": "newData.val() === 'waiting' || (newData.val() === 'claiming' && !newData.parent().child('claim').exists())" },
+          "createdAt": { ".validate": "newData.isNumber() && (newData.val() === data.val() || (newData.val() <= now + 10000 && newData.val() > now - 86400000))" },
+          "expiresAt": { ".validate": "newData.isNumber() && (newData.val() === data.val() || (newData.val() <= now + 120000 && newData.val() > now))" },
+          "claim": {
+            ".write": "auth != null && auth.uid !== $uid && ((!data.exists() && newData.child('uid').val() === auth.uid && newData.child('token').val() === data.parent().child('token').val() && data.parent().child('state').val() === 'waiting' && data.parent().child('expiresAt').val() > now) || (data.child('uid').val() === auth.uid && !newData.exists()))",
+            ".validate": "newData.hasChildren(['uid', 'name', 'token']) && newData.parent().child('state').val() === 'waiting' && newData.child('uid').val() !== $uid && newData.child('token').val() === newData.parent().child('token').val()",
+            "uid": { ".validate": "newData.isString() && newData.val() === auth.uid" },
+            "name": { ".validate": "newData.isString() && newData.val().length >= 1 && newData.val().length <= 20" },
+            "token": { ".validate": "newData.isString() && newData.val().length === 36" },
+            "$other": { ".validate": false }
+          },
+          "$other": { ".validate": false }
+        }
+      },
+      "signals": {
+        "$host": {
+          "$token": {
+            ".read": "auth != null && root.child('v1/tickets').child($host).child('token').val() === $token && (auth.uid === $host || auth.uid === root.child('v1/tickets').child($host).child('claim/uid').val())",
+            ".write": "auth != null && auth.uid === $host && !newData.exists()",
+            "$sender": {
+              ".write": "auth != null && auth.uid === $sender && (!newData.exists() || (root.child('v1/tickets').child($host).child('token').val() === $token && root.child('v1/tickets').child($host).child('claim').exists() && (auth.uid === $host || auth.uid === root.child('v1/tickets').child($host).child('claim/uid').val())))",
+              "$message": { ".validate": "newData.isString() && newData.val().length <= 32768" }
+            }
+          }
+        }
+      }
+    }
+  }
+}

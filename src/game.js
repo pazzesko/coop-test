@@ -1,0 +1,127 @@
+import { Input } from './input.js';
+import { WIDTH, HEIGHT, RADIUS, WALLS, move, spawn } from './world.js';
+
+const COLORS = ['#70e3bb', '#93afff'];
+
+export class Game {
+  constructor(elements) {
+    this.elements = elements;
+    this.canvas = elements.arena;
+    this.ctx = this.canvas.getContext('2d');
+    this.input = new Input(this.canvas, elements.joystick, elements.knob);
+    this.running = false;
+    window.addEventListener('resize', () => this.resize());
+  }
+
+  start({ name, peerName, host = true, connection = null }) {
+    this.stop();
+    this.running = true;
+    this.connection = connection;
+    this.local = { ...spawn(host), name, color: COLORS[host ? 0 : 1] };
+    this.remote = connection ? { ...spawn(!host), name: peerName, color: COLORS[host ? 1 : 0] } : null;
+    this.target = this.remote ? { x: this.remote.x, y: this.remote.y } : null;
+    this.input.enabled = true;
+    this.sequence = 0;
+    this.sendAt = 0;
+    this.last = performance.now();
+    this.fpsAt = this.last;
+    this.frames = 0;
+    this.resize();
+    this.frameId = requestAnimationFrame(now => this.frame(now));
+  }
+
+  receive(position) {
+    if (this.remote) this.target = { x: position.x, y: position.y };
+  }
+
+  resize() {
+    const dpr = Math.min(devicePixelRatio || 1, 2);
+    this.canvas.width = Math.round(innerWidth * dpr);
+    this.canvas.height = Math.round(innerHeight * dpr);
+    this.dpr = dpr;
+  }
+
+  frame(now) {
+    if (!this.running) return;
+    const dt = Math.min((now - this.last) / 1000, 0.05);
+    this.last = now;
+    const axis = this.input.axis();
+    move(this.local, axis.x, axis.y, dt);
+    if (this.remote && this.target) {
+      const distance = Math.hypot(this.target.x - this.remote.x, this.target.y - this.remote.y);
+      const alpha = distance > 160 ? 1 : 1 - Math.exp(-18 * dt);
+      this.remote.x += (this.target.x - this.remote.x) * alpha;
+      this.remote.y += (this.target.y - this.remote.y) * alpha;
+    }
+    if (this.connection && now >= this.sendAt) {
+      this.sendAt = now + 50;
+      this.connection.sendPosition({ type: 'position', seq: this.sequence++, x: Math.round(this.local.x * 10) / 10, y: Math.round(this.local.y * 10) / 10 });
+    }
+    this.frames++;
+    if (now - this.fpsAt >= 750) {
+      this.elements.fps.textContent = `FPS ${Math.round(this.frames * 1000 / (now - this.fpsAt))}`;
+      this.fpsAt = now;
+      this.frames = 0;
+    }
+    this.draw();
+    this.frameId = requestAnimationFrame(time => this.frame(time));
+  }
+
+  draw() {
+    const ctx = this.ctx;
+    const w = innerWidth;
+    const h = innerHeight;
+    const scale = Math.min(w / (WIDTH + 48), Math.max(150, h - 140) / (HEIGHT + 48));
+    ctx.setTransform(this.dpr, 0, 0, this.dpr, 0, 0);
+    ctx.fillStyle = '#0b1020';
+    ctx.fillRect(0, 0, w, h);
+    ctx.translate((w - WIDTH * scale) / 2, Math.max(88, (h - HEIGHT * scale) / 2));
+    ctx.scale(scale, scale);
+    ctx.fillStyle = '#142237';
+    ctx.fillRect(0, 0, WIDTH, HEIGHT);
+    ctx.strokeStyle = '#1b2c43';
+    ctx.lineWidth = 1;
+    ctx.beginPath();
+    for (let x = 0; x <= WIDTH; x += 40) { ctx.moveTo(x, 0); ctx.lineTo(x, HEIGHT); }
+    for (let y = 0; y <= HEIGHT; y += 40) { ctx.moveTo(0, y); ctx.lineTo(WIDTH, y); }
+    ctx.stroke();
+    for (const wall of WALLS) {
+      ctx.fillStyle = '#293b55';
+      ctx.fillRect(wall.x, wall.y, wall.w, wall.h);
+      ctx.fillStyle = '#3b526f';
+      ctx.fillRect(wall.x, wall.y, wall.w, Math.min(3, wall.h));
+    }
+    ctx.textAlign = 'center';
+    ctx.font = '11px system-ui';
+    ctx.fillStyle = '#59728f';
+    ctx.fillText('MOVEMENT SANDBOX', WIDTH / 2, 100);
+    if (this.remote) this.drawPlayer(this.remote, false);
+    this.drawPlayer(this.local, true);
+  }
+
+  drawPlayer(player, local) {
+    const ctx = this.ctx;
+    ctx.fillStyle = '#0005';
+    ctx.beginPath(); ctx.ellipse(player.x, player.y + 15, 19, 7, 0, 0, Math.PI * 2); ctx.fill();
+    if (local) {
+      ctx.strokeStyle = `${player.color}55`;
+      ctx.lineWidth = 2;
+      ctx.beginPath(); ctx.arc(player.x, player.y, RADIUS + 6, 0, Math.PI * 2); ctx.stroke();
+    }
+    ctx.fillStyle = player.color;
+    ctx.beginPath(); ctx.arc(player.x, player.y, RADIUS, 0, Math.PI * 2); ctx.fill();
+    ctx.fillStyle = '#152139';
+    ctx.fillRect(player.x - 7, player.y - 3, 4, 5);
+    ctx.fillRect(player.x + 3, player.y - 3, 4, 5);
+    ctx.font = 'bold 13px system-ui';
+    ctx.fillStyle = '#ecf4ff';
+    ctx.fillText(`${player.name}${local ? ' · you' : ''}`, player.x, player.y - 31);
+  }
+
+  stop() {
+    this.running = false;
+    cancelAnimationFrame(this.frameId);
+    this.input.enabled = false;
+    this.input.reset();
+  }
+}

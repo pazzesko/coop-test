@@ -1,0 +1,42 @@
+@import url('https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@400;500;600;700&display=swap');
+
+:root { color-scheme: dark; font-family: 'Space Grotesk', system-ui, sans-serif; color: #e5edf7; background: #0b1020; }
+* { box-sizing: border-box; }
+[hidden] { display: none !important; }
+body { margin: 0; min-height: 100dvh; background: radial-gradient(ellipse at 50% 20%, #1a2942, #0b1020 65%); }
+main { min-height: 100dvh; display: grid; place-items: center; padding: 24px; }
+.panel { width: min(100%, 460px); padding: 36px; border: 1px solid #29364e; background: #101a2ae8; border-radius: 24px; box-shadow: 0 24px 90px #0005; }
+.eyebrow { display: block; color: #8fa2bd; font-size: 10px; letter-spacing: 2px; font-weight: 700; }
+h1 { margin: 18px 0 8px; font-size: clamp(40px, 10vw, 56px); letter-spacing: -3px; line-height: 1; }
+h1 span { color: #70e3bb; }
+.intro { color: #a3b3c9; margin: 16px 0 30px; }
+label { display: block; margin-bottom: 12px; font-weight: 500; }
+input { width: 100%; background: #0b1220; color: #fff; border: 1px solid #3b4d69; border-radius: 10px; padding: 14px; font: inherit; margin-bottom: 14px; }
+button { border: 0; border-radius: 10px; background: #70e3bb; color: #10251e; padding: 14px 20px; font: inherit; font-weight: 700; cursor: pointer; min-height: 44px; }
+button:disabled { opacity: .45; cursor: not-allowed; }
+button:focus-visible, input:focus-visible, a:focus-visible { outline: 3px solid #9bbdff; outline-offset: 3px; }
+#name-form button, #play, #cancel, #practice { width: 100%; }
+.secondary { background: #23314a; color: #d3deee; }
+#practice, #cancel { margin-top: 10px; }
+.text-button { padding: 4px 0 4px 12px; background: none; color: #70e3bb; font-size: 13px; }
+.identity { display: flex; align-items: center; justify-content: space-between; font-size: 14px; }
+.presence { display: flex; align-items: center; gap: 9px; margin-top: 16px; color: #a8bad2; font-size: 13px; }
+.dot { width: 7px; height: 7px; background: #7b879d; border-radius: 50%; }
+.dot.connected { background: #70e3bb; box-shadow: 0 0 14px #70e3bb66; }
+#status { min-height: 44px; font-size: 14px; line-height: 1.5; color: #c1cee0; overflow-wrap: anywhere; }
+.privacy, .controls-note { color: #91a4bf; font-size: 11px; line-height: 1.65; }
+.privacy { margin-top: 20px; }
+.controls-note { border-top: 1px solid #29364e; padding-top: 20px; margin-top: 25px; }
+.source { color: #91a4bf; font-size: 11px; text-decoration: none; }
+#game { position: fixed; inset: 0; background: #0b1020; touch-action: none; overflow: hidden; user-select: none; }
+#arena { display: block; width: 100%; height: 100%; }
+.hud { position: absolute; top: 0; left: 0; right: 0; display: flex; justify-content: space-between; align-items: center; padding: max(16px, env(safe-area-inset-top)) max(20px, env(safe-area-inset-right)) 16px max(20px, env(safe-area-inset-left)); gap: 12px; background: linear-gradient(#0b1020ee, transparent); pointer-events: none; }
+.hud button { pointer-events: auto; padding: 8px 14px; font-size: 12px; }
+#connection-label { display: block; font-size: 12px; color: #b8c9df; margin-top: 6px; }
+.metrics { display: flex; align-items: center; gap: 16px; font: 12px ui-monospace, monospace; white-space: nowrap; }
+#game-notice { position: absolute; top: 100px; left: 50%; transform: translateX(-50%); text-align: center; color: #ffc98a; font-size: 13px; background: #101a2add; border-radius: 12px; padding: 10px 16px; max-width: 90%; pointer-events: none; }
+#game-notice:empty { display: none; }
+.game-help { position: absolute; bottom: max(18px, env(safe-area-inset-bottom)); left: 0; right: 0; text-align: center; color: #91a4bf; font-size: 11px; pointer-events: none; }
+#joystick { position: fixed; width: 110px; height: 110px; margin-left: -55px; margin-top: -55px; border: 2px solid #90eaca66; border-radius: 50%; background: #70e3bb12; pointer-events: none; }
+#joystick-knob { position: absolute; left: 33px; top: 33px; width: 40px; height: 40px; background: #70e3bb99; border: 1px solid #a9f6dc; border-radius: 50%; }
+@media (max-width: 500px) { .panel { padding: 28px; } .metrics { gap: 10px; font-size: 10px; } .hud { padding-left: 12px; padding-right: 12px; } }
