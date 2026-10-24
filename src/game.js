@@ -1,6 +1,7 @@
 import { Input } from './input.js';
 import { WIDTH, HEIGHT, RADIUS, WALLS, move, spawn } from './world.js';
 import { MovementSender, RemoteMovement } from './movement.js';
+import { cameraFor } from './camera.js';
 
 const COLORS = ['#70e3bb', '#93afff'];
 
@@ -9,9 +10,11 @@ export class Game {
     this.elements = elements;
     this.canvas = elements.arena;
     this.ctx = this.canvas.getContext('2d');
-    this.input = new Input(this.canvas, elements.joystick, elements.knob);
+    this.input = new Input(elements.movementPad, elements.joystick, elements.knob);
     this.running = false;
     window.addEventListener('resize', () => this.resize());
+    this.resizeObserver = new ResizeObserver(() => this.resize());
+    this.resizeObserver.observe(this.canvas);
   }
 
   start({ name, peerName, host = true, connection = null }) {
@@ -35,10 +38,15 @@ export class Game {
   }
 
   resize() {
+    const { width, height } = this.canvas.getBoundingClientRect();
+    if (!width || !height) return;
     const dpr = Math.min(devicePixelRatio || 1, 2);
-    this.canvas.width = Math.round(innerWidth * dpr);
-    this.canvas.height = Math.round(innerHeight * dpr);
+    this.canvas.width = Math.round(width * dpr);
+    this.canvas.height = Math.round(height * dpr);
+    this.width = width;
+    this.height = height;
     this.dpr = dpr;
+    this.input.reset();
   }
 
   frame(now) {
@@ -68,14 +76,14 @@ export class Game {
 
   draw() {
     const ctx = this.ctx;
-    const w = innerWidth;
-    const h = innerHeight;
-    const scale = Math.min(w / (WIDTH + 48), Math.max(150, h - 140) / (HEIGHT + 48));
+    const w = this.width;
+    const h = this.height;
+    const camera = cameraFor(w, h, this.local);
     ctx.setTransform(this.dpr, 0, 0, this.dpr, 0, 0);
     ctx.fillStyle = '#0b1020';
     ctx.fillRect(0, 0, w, h);
-    ctx.translate((w - WIDTH * scale) / 2, Math.max(88, (h - HEIGHT * scale) / 2));
-    ctx.scale(scale, scale);
+    ctx.scale(camera.scale, camera.scale);
+    ctx.translate(-camera.x, -camera.y);
     ctx.fillStyle = '#142237';
     ctx.fillRect(0, 0, WIDTH, HEIGHT);
     ctx.strokeStyle = '#1b2c43';

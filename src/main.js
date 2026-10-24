@@ -1,9 +1,11 @@
 import { Backend } from './backend.js';
 import { Connection } from './network.js';
 import { Game } from './game.js';
+import { setupFullscreen } from './fullscreen.js';
 
 const $ = id => document.getElementById(id);
-const game = new Game({ arena: $('arena'), joystick: $('joystick'), knob: $('joystick-knob'), fps: $('fps') });
+const game = new Game({ arena: $('arena'), movementPad: $('movement-pad'), joystick: $('joystick'), knob: $('joystick-knob'), fps: $('fps') });
+const fullscreen = setupFullscreen($('fullscreen'), $('game'), text => { $('game-notice').textContent = text; });
 let name = '';
 try { name = cleanName(localStorage.getItem('coop-test-name') || ''); } catch { /* Private browsing may disable storage. */ }
 let phase = 'menu';
@@ -71,6 +73,7 @@ function cleanup() {
 }
 
 function showMenu(text) {
+  fullscreen.exit();
   $('menu').hidden = false;
   $('game').hidden = true;
   phase = 'menu';

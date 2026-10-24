@@ -11,6 +11,8 @@ A tiny two-player browser co-op sandbox. Original code and geometric artwork; no
 - Automatic pairing with a random eligible waiting player; cancel anytime.
 - Two-player arena with WASD/arrow keys, collision, and mobile touch joystick.
 - The joystick appears at the initial touch position and **stays anchored until release**.
+- Portrait-first, full-height play area with a player-following camera; bottom-left touch pad and bottom-right Fullscreen/Leave buttons.
+- Compact FPS/ping labels inside the play area. Fullscreen toggles where the browser supports it; unsupported browsers keep working normally.
 - Smooth remote movement, application round-trip ping, and local rendering FPS.
 - Adaptive movement traffic: up to 20 updates/second while moving, one/second while idle, and three final-position sends after stopping.
 - Offline movement practice, even before Firebase is configured.
@@ -72,7 +74,7 @@ Open http://127.0.0.1:8080. Do not open `index.html` with `file://`.
 
 To simulate two distinct players, use **two browser profiles, separate browsers, or separate devices**. Two ordinary tabs share one Firebase identity and cannot match each other. New online searches take over an existing online session in another tab.
 
-To test touch controls on a phone using the deployed HTTPS URL is easiest. The whole arena stays visible in portrait or landscape; landscape gives more room.
+To test touch controls on a phone using the deployed HTTPS URL is easiest. Portrait mode uses the available height with a player-following camera, rather than shrinking the entire wide arena. The map and movement rules remain identical across devices. Drag in the bottom-left control pad to move; the joystick stays anchored throughout the drag (adjusted inward near edges to stay visible). Fullscreen and Leave are bottom-right, above the safe-area inset. Rotation and browser viewport changes resize the play area automatically. Fullscreen requires browser support; some iPhone browsers do not expose it for arbitrary elements.
 
 ## Deploy to GitHub Pages
 

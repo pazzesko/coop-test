@@ -28,15 +28,34 @@ button:focus-visible, input:focus-visible, a:focus-visible { outline: 3px solid 
 .privacy { margin-top: 20px; }
 .controls-note { border-top: 1px solid #29364e; padding-top: 20px; margin-top: 25px; }
 .source { color: #91a4bf; font-size: 11px; text-decoration: none; }
-#game { position: fixed; inset: 0; background: #0b1020; touch-action: none; overflow: hidden; user-select: none; }
-#arena { display: block; width: 100%; height: 100%; }
-.hud { position: absolute; top: 0; left: 0; right: 0; display: flex; justify-content: space-between; align-items: center; padding: max(16px, env(safe-area-inset-top)) max(20px, env(safe-area-inset-right)) 16px max(20px, env(safe-area-inset-left)); gap: 12px; background: linear-gradient(#0b1020ee, transparent); pointer-events: none; }
-.hud button { pointer-events: auto; padding: 8px 14px; font-size: 12px; }
-#connection-label { display: block; font-size: 12px; color: #b8c9df; margin-top: 6px; }
-.metrics { display: flex; align-items: center; gap: 16px; font: 12px ui-monospace, monospace; white-space: nowrap; }
-#game-notice { position: absolute; top: 100px; left: 50%; transform: translateX(-50%); text-align: center; color: #ffc98a; font-size: 13px; background: #101a2add; border-radius: 12px; padding: 10px 16px; max-width: 90%; pointer-events: none; }
+#game { --controls-height: calc(80px + env(safe-area-inset-bottom)); position: fixed; inset: 0; background: #0b1020; touch-action: none; overflow: hidden; user-select: none; -webkit-user-select: none; }
+#arena { display: block; width: 100%; height: calc(100% - var(--controls-height)); }
+.hud { position: absolute; top: 0; left: 0; right: 0; padding: max(16px, env(safe-area-inset-top)) max(20px, env(safe-area-inset-right)) 30px max(20px, env(safe-area-inset-left)); background: linear-gradient(#0b1020dd, transparent); pointer-events: none; }
+#connection-label { display: block; font-size: 12px; color: #b8c9df; margin-top: 6px; max-width: calc(100% - 135px); overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.metrics { position: absolute; top: max(14px, env(safe-area-inset-top)); right: max(14px, env(safe-area-inset-right)); display: flex; gap: 5px; pointer-events: none; font: 10px ui-monospace, monospace; color: #c2d2e6; white-space: nowrap; }
+.metrics span { padding: 5px 6px; border: 1px solid #6983a02b; background: #0b1423b8; border-radius: 5px; }
+#game-notice { position: absolute; top: max(78px, calc(env(safe-area-inset-top) + 64px)); left: 50%; transform: translateX(-50%); text-align: center; color: #ffc98a; font-size: 12px; background: #101a2add; border-radius: 12px; padding: 10px 16px; max-width: 90%; pointer-events: none; }
 #game-notice:empty { display: none; }
-.game-help { position: absolute; bottom: max(18px, env(safe-area-inset-bottom)); left: 0; right: 0; text-align: center; color: #91a4bf; font-size: 11px; pointer-events: none; }
-#joystick { position: fixed; width: 110px; height: 110px; margin-left: -55px; margin-top: -55px; border: 2px solid #90eaca66; border-radius: 50%; background: #70e3bb12; pointer-events: none; }
+#bottom-controls { position: absolute; left: 0; right: 0; bottom: 0; height: var(--controls-height); padding: 10px max(20px, env(safe-area-inset-right)) calc(10px + env(safe-area-inset-bottom)) max(20px, env(safe-area-inset-left)); display: flex; align-items: center; justify-content: space-between; gap: 12px; border-top: 1px solid #30455e; background: linear-gradient(120deg, #122136, #0b1423); }
+.desktop-help { display: flex; align-items: center; gap: 5px; font-size: 11px; color: #91a4bf; }
+.desktop-help span { margin-left: 6px; }
+kbd { border: 1px solid #3b526f; padding: 5px; border-radius: 5px; color: #b8c9df; }
+.game-actions { display: flex; gap: 8px; margin-left: auto; }
+.game-actions button { padding: 12px 16px; font-size: 12px; }
+#movement-pad { display: none; position: relative; align-self: stretch; flex: 1; min-width: 120px; max-width: 240px; touch-action: none; }
+.stick-rest { position: absolute; top: 50%; left: 50%; transform: translate(-50%, -50%); width: 110px; height: 110px; border: 1px dashed #729aab55; border-radius: 50%; display: grid; place-items: center; color: #81a4b8; font-size: 9px; letter-spacing: 2px; background: #70e3bb04; pointer-events: none; }
+#movement-pad:has(#joystick:not([hidden])) .stick-rest { visibility: hidden; }
+#joystick { position: absolute; width: 110px; height: 110px; margin-left: -55px; margin-top: -55px; border: 2px solid #90eaca66; border-radius: 50%; background: #70e3bb12; pointer-events: none; }
 #joystick-knob { position: absolute; left: 33px; top: 33px; width: 40px; height: 40px; background: #70e3bb99; border: 1px solid #a9f6dc; border-radius: 50%; }
-@media (max-width: 500px) { .panel { padding: 28px; } .metrics { gap: 10px; font-size: 10px; } .hud { padding-left: 12px; padding-right: 12px; } }
+@media (max-width: 500px) { .panel { padding: 28px; } .hud { padding-left: 14px; padding-right: 14px; } }
+@media (pointer: coarse), (hover: none) {
+  #game { --controls-height: calc(170px + env(safe-area-inset-bottom)); }
+  #movement-pad { display: block; }
+  .desktop-help { display: none; }
+  .game-actions { flex-direction: column; width: 130px; }
+  .game-actions button { min-height: 48px; }
+}
+@media (pointer: coarse) and (orientation: landscape), (hover: none) and (orientation: landscape) {
+  #game { --controls-height: calc(126px + env(safe-area-inset-bottom)); }
+  .game-actions { flex-direction: row; width: auto; }
+}

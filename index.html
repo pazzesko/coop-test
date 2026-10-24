@@ -28,18 +28,27 @@
         <button id="practice" class="secondary">Try movement offline</button>
         <p class="privacy">Online play connects browsers directly and may reveal your IP address to your partner. Names are visible to other players. No chat, accounts, or progress to lose.</p>
       </div>
-      <p class="controls-note">WASD / arrows on desktop · drag the left side on touch</p>
+      <p class="controls-note">WASD / arrows on desktop · bottom-left stick on touch</p>
       <a class="source" href="https://github.com/pazzesko/coop-test" target="_blank" rel="noopener">Source on GitHub ↗</a>
     </section>
     <section id="game" hidden aria-label="Game arena">
       <canvas id="arena" aria-label="Move with WASD, arrow keys, or the touch joystick"></canvas>
       <header class="hud">
         <div><span class="eyebrow">COOP TEST</span><span id="connection-label">Offline practice</span></div>
-        <div class="metrics"><span id="ping">PING —</span><span id="fps">FPS —</span><button id="leave" class="secondary">Leave</button></div>
       </header>
+      <div class="metrics" aria-label="Connection and rendering statistics"><span id="ping">PING —</span><span id="fps">FPS —</span></div>
       <div id="game-notice" role="status" aria-live="polite"></div>
-      <div class="game-help">WASD / arrows to move · touch & drag to use the stick</div>
-      <div id="joystick" hidden aria-hidden="true"><div id="joystick-knob"></div></div>
+      <footer id="bottom-controls">
+        <div id="movement-pad" aria-label="Touch movement area">
+          <div class="stick-rest" aria-hidden="true"><span>MOVE</span></div>
+          <div id="joystick" hidden aria-hidden="true"><div id="joystick-knob"></div></div>
+        </div>
+        <div class="desktop-help"><kbd>W</kbd><kbd>A</kbd><kbd>S</kbd><kbd>D</kbd><span>to move · arrows work too</span></div>
+        <div class="game-actions">
+          <button id="fullscreen" class="secondary" aria-pressed="false">Fullscreen</button>
+          <button id="leave" class="secondary">Leave</button>
+        </div>
+      </footer>
     </section>
   </main>
   <script type="module" src="./src/main.js"></script>

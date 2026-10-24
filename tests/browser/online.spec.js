@@ -67,12 +67,12 @@ test('two players are counted, randomly paired, exchange movement and ping, then
     await expect(bob.page.locator('#connection-label')).toHaveText('Online with Alice');
     await expect(alice.page.locator('#ping')).toHaveText(/PING \d+ ms/);
     await expect(bob.page.locator('#ping')).toHaveText(/PING \d+ ms/);
-    const before = await bob.page.locator('#arena').screenshot();
+    const before = await bob.page.locator('#arena').screenshot({ mask: [bob.page.locator('.metrics')] });
     await alice.page.keyboard.down('KeyW');
     await alice.page.waitForTimeout(400);
     await alice.page.keyboard.up('KeyW');
     await bob.page.waitForTimeout(200);
-    const after = await bob.page.locator('#arena').screenshot();
+    const after = await bob.page.locator('#arena').screenshot({ mask: [bob.page.locator('.metrics')] });
     expect(before.equals(after)).toBe(false);
     await alice.page.locator('#leave').click();
     await expect(bob.page.locator('#menu')).toBeVisible();
@@ -162,9 +162,9 @@ test('adaptive movement survives jitter and a lost stop packet, then stays still
     expect(finalPosition.moving).toBe(false);
     await expect.poll(async () => bob.page.evaluate(() => window.movementStats.received.at(-1)?.x)).toBe(finalPosition.x);
     await expect.poll(async () => bob.page.evaluate(() => window.movementStats.received.at(-1)?.y)).toBe(finalPosition.y);
-    const settled = await bob.page.locator('#arena').screenshot();
+    const settled = await bob.page.locator('#arena').screenshot({ mask: [bob.page.locator('.metrics')] });
     await bob.page.waitForTimeout(500);
-    expect(settled.equals(await bob.page.locator('#arena').screenshot())).toBe(true);
+    expect(settled.equals(await bob.page.locator('#arena').screenshot({ mask: [bob.page.locator('.metrics')] }))).toBe(true);
     expect(alice.errors).toEqual([]);
     expect(bob.errors).toEqual([]);
   } finally { await alice.context.close(); await bob.context.close(); }

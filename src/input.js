@@ -15,13 +15,17 @@ export class Input {
     window.addEventListener('blur', () => this.reset());
     document.addEventListener('visibilitychange', () => { if (document.hidden) this.reset(); });
     surface.addEventListener('pointerdown', event => {
-      if (!this.enabled || event.pointerType === 'mouse' || this.pointer !== null || event.clientX > innerWidth * 0.65) return;
+      if (!this.enabled || event.pointerType === 'mouse' || this.pointer !== null) return;
       event.preventDefault();
+      const bounds = surface.getBoundingClientRect();
       this.pointer = event.pointerId;
-      this.origin = { x: event.clientX, y: event.clientY };
+      this.origin = {
+        x: Math.max(bounds.left + 55, Math.min(bounds.right - 55, event.clientX)),
+        y: Math.max(bounds.top + 55, Math.min(bounds.bottom - 55, event.clientY)),
+      };
       surface.setPointerCapture(event.pointerId);
-      stick.style.left = `${this.origin.x}px`;
-      stick.style.top = `${this.origin.y}px`;
+      stick.style.left = `${this.origin.x - bounds.left}px`;
+      stick.style.top = `${this.origin.y - bounds.top}px`;
       stick.hidden = false;
     });
     surface.addEventListener('pointermove', event => {
