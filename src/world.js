@@ -43,6 +43,8 @@ export function move(player, dx, dy, dt) {
 
 export function validPosition(message) {
   return message?.type === 'position' && Number.isSafeInteger(message.seq) && message.seq >= 0
+    && (message.t === undefined || (Number.isSafeInteger(message.t) && message.t >= 0))
+    && (message.moving === undefined || typeof message.moving === 'boolean')
     && Number.isFinite(message.x) && Number.isFinite(message.y)
     && message.x >= 24 + RADIUS && message.x <= WIDTH - 24 - RADIUS
     && message.y >= 24 + RADIUS && message.y <= HEIGHT - 24 - RADIUS;

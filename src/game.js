@@ -1,5 +1,6 @@
 import { Input } from './input.js';
 import { WIDTH, HEIGHT, RADIUS, WALLS, move, spawn } from './world.js';
+import { MovementSender, RemoteMovement } from './movement.js';
 
 const COLORS = ['#70e3bb', '#93afff'];
 
@@ -19,10 +20,9 @@ export class Game {
     this.connection = connection;
     this.local = { ...spawn(host), name, color: COLORS[host ? 0 : 1] };
     this.remote = connection ? { ...spawn(!host), name: peerName, color: COLORS[host ? 1 : 0] } : null;
-    this.target = this.remote ? { x: this.remote.x, y: this.remote.y } : null;
+    this.remoteMovement = new RemoteMovement();
+    this.movementSender = new MovementSender();
     this.input.enabled = true;
-    this.sequence = 0;
-    this.sendAt = 0;
     this.last = performance.now();
     this.fpsAt = this.last;
     this.frames = 0;
@@ -31,7 +31,7 @@ export class Game {
   }
 
   receive(position) {
-    if (this.remote) this.target = { x: position.x, y: position.y };
+    if (this.remote) this.remoteMovement.receive(position, performance.now());
   }
 
   resize() {
@@ -46,16 +46,15 @@ export class Game {
     const dt = Math.min((now - this.last) / 1000, 0.05);
     this.last = now;
     const axis = this.input.axis();
+    const before = { x: this.local.x, y: this.local.y };
     move(this.local, axis.x, axis.y, dt);
-    if (this.remote && this.target) {
-      const distance = Math.hypot(this.target.x - this.remote.x, this.target.y - this.remote.y);
-      const alpha = distance > 160 ? 1 : 1 - Math.exp(-18 * dt);
-      this.remote.x += (this.target.x - this.remote.x) * alpha;
-      this.remote.y += (this.target.y - this.remote.y) * alpha;
+    const moving = Math.hypot(this.local.x - before.x, this.local.y - before.y) > 0.0001;
+    if (this.remote) {
+      const position = this.remoteMovement.sample(now);
+      if (position) Object.assign(this.remote, position);
     }
-    if (this.connection && now >= this.sendAt) {
-      this.sendAt = now + 50;
-      this.connection.sendPosition({ type: 'position', seq: this.sequence++, x: Math.round(this.local.x * 10) / 10, y: Math.round(this.local.y * 10) / 10 });
+    if (this.connection) {
+      this.movementSender.update(this.local, moving, now, packet => this.connection.sendPosition(packet));
     }
     this.frames++;
     if (now - this.fpsAt >= 750) {

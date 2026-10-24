@@ -123,7 +123,9 @@ export class Connection {
   }
 
   sendPosition(position) {
-    if (this.movement?.readyState === 'open' && this.movement.bufferedAmount < 16000) this.movement.send(JSON.stringify(position));
+    if (this.movement?.readyState !== 'open' || this.movement.bufferedAmount >= 16000) return false;
+    try { this.movement.send(JSON.stringify(position)); return true; }
+    catch { return false; }
   }
 
   sendControl(message) {

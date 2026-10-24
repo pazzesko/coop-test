@@ -31,7 +31,7 @@ test('world boundaries and invalid input cannot move a player out of bounds', ()
 
 test('network positions must be finite, bounded, and sequenced', () => {
   assert.equal(validPosition({ type: 'position', seq: 0, ...spawn() }), true);
-  for (const patch of [{ x: NaN }, { y: Infinity }, { x: WIDTH + 1 }, { seq: -1 }, { seq: '2' }, { type: 'other' }]) {
+  for (const patch of [{ x: NaN }, { y: Infinity }, { x: WIDTH + 1 }, { seq: -1 }, { seq: '2' }, { type: 'other' }, { t: Infinity }, { t: -1 }, { moving: 'yes' }]) {
     assert.equal(validPosition({ type: 'position', seq: 1, ...spawn(), ...patch }), false);
   }
 });

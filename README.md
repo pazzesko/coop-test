@@ -12,6 +12,7 @@ A tiny two-player browser co-op sandbox. Original code and geometric artwork; no
 - Two-player arena with WASD/arrow keys, collision, and mobile touch joystick.
 - The joystick appears at the initial touch position and **stays anchored until release**.
 - Smooth remote movement, application round-trip ping, and local rendering FPS.
+- Adaptive movement traffic: up to 20 updates/second while moving, one/second while idle, and three final-position sends after stopping.
 - Offline movement practice, even before Firebase is configured.
 
 ## Stack
@@ -46,6 +47,12 @@ v1/
 Presence installs `onDisconnect()` before marking a connection online. Queue tickets have a short lease and are refreshed while waiting. Matching first transactionally locks your own ticket, then claims another ticket; this prevents reciprocal matches and double booking. A unique token isolates each signaling session. Failed connection attempts return to matchmaking; a disconnect during gameplay returns to the menu.
 
 The initial queue watches only the latest 30 tickets and chooses randomly among eligible entries. This is a **small-scale prototype**, not a production matchmaking service. Active matches retain a ticket for signaling authorization; a larger deployment should separate waiting tickets from match records and add server-side cleanup/fairness.
+
+### Movement synchronization
+
+Local movement stays immediate. Movement packets include sequence numbers, a sender-relative timestamp, and moving/stopped state. Remote rendering interpolates a short snapshot history about 100 ms behind the estimated sender timeline, which smooths uneven delivery without requiring synchronized device clocks. It holds the latest position if packets stop rather than predicting through walls. Movement restarts after an idle period do not interpolate across the entire idle heartbeat gap.
+
+Idle position traffic is reduced from approximately 20 packets/second to one/second (95% fewer position packets, not 95% less total connection traffic). After stopping, the final position is sent three times over the unreliable movement channel; the idle heartbeat also repairs a lost final position. Ping/control traffic is unchanged. Older peers without timestamp metadata are still supported.
 
 ### WebRTC and TURN limitations
 

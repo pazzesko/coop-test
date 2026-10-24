@@ -11,8 +11,31 @@ test.beforeAll(async () => {
 test.beforeEach(async () => env.withSecurityRulesDisabled(context => context.database().ref().remove()));
 test.afterAll(async () => env?.cleanup());
 
-async function player(browser, name) {
+async function player(browser, name, simulateJitter = false) {
   const context = await browser.newContext();
+  await context.addInitScript(simulateJitter => {
+    window.movementStats = { sent: [], received: [], droppedStops: 0 };
+    const original = RTCDataChannel.prototype.send;
+    let sawMovement = false;
+    RTCDataChannel.prototype.send = function (data) {
+      if (this.label !== 'movement') return original.call(this, data);
+      const packet = JSON.parse(data);
+      if (!this.observingMovement) {
+        this.observingMovement = true;
+        this.addEventListener('message', event => window.movementStats.received.push(JSON.parse(event.data)));
+      }
+      window.movementStats.sent.push(packet);
+      if (packet.moving) sawMovement = true;
+      if (simulateJitter && !packet.moving && sawMovement && !window.movementStats.droppedStops) {
+        window.movementStats.droppedStops++;
+        return;
+      }
+      if (simulateJitter) {
+        const delay = [20, 95, 40, 65][packet.seq % 4];
+        setTimeout(() => { if (this.readyState === 'open') original.call(this, data); }, delay);
+      } else return original.call(this, data);
+    };
+  }, simulateJitter);
   const page = await context.newPage();
   const errors = [];
   page.on('pageerror', error => errors.push(error.message));
@@ -115,4 +138,34 @@ test('multiple tabs share one online identity', async ({ browser }) => {
     await second.close();
     await expect(alice.page.locator('#online-count')).toHaveText('1 player online');
   } finally { await alice.context.close(); }
+});
+
+test('adaptive movement survives jitter and a lost stop packet, then stays still', async ({ browser }) => {
+  const alice = await player(browser, 'Alice', true);
+  const bob = await player(browser, 'Bob');
+  try {
+    await Promise.all([alice.page.locator('#play').click(), bob.page.locator('#play').click()]);
+    for (const p of [alice, bob]) await expect(p.page.locator('#game')).toBeVisible({ timeout: 25000 });
+    const initial = await alice.page.evaluate(() => window.movementStats.sent.length);
+    await alice.page.waitForTimeout(3200);
+    const idleCount = await alice.page.evaluate(() => window.movementStats.sent.length) - initial;
+    expect(idleCount).toBeGreaterThanOrEqual(3);
+    expect(idleCount).toBeLessThanOrEqual(4);
+    await alice.page.keyboard.down('KeyW');
+    await alice.page.waitForTimeout(600);
+    await alice.page.keyboard.up('KeyW');
+    await alice.page.waitForTimeout(700);
+    const stats = await alice.page.evaluate(() => window.movementStats);
+    expect(stats.sent.filter(p => p.moving).length).toBeGreaterThanOrEqual(8);
+    expect(stats.droppedStops).toBe(1);
+    const finalPosition = stats.sent.at(-1);
+    expect(finalPosition.moving).toBe(false);
+    await expect.poll(async () => bob.page.evaluate(() => window.movementStats.received.at(-1)?.x)).toBe(finalPosition.x);
+    await expect.poll(async () => bob.page.evaluate(() => window.movementStats.received.at(-1)?.y)).toBe(finalPosition.y);
+    const settled = await bob.page.locator('#arena').screenshot();
+    await bob.page.waitForTimeout(500);
+    expect(settled.equals(await bob.page.locator('#arena').screenshot())).toBe(true);
+    expect(alice.errors).toEqual([]);
+    expect(bob.errors).toEqual([]);
+  } finally { await alice.context.close(); await bob.context.close(); }
 });
