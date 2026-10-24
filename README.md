@@ -11,7 +11,7 @@ A tiny two-player browser co-op sandbox. Original code and geometric artwork; no
 - Automatic pairing with a random eligible waiting player; cancel anytime.
 - Two-player arena with WASD/arrow keys, collision, and mobile touch joystick.
 - The joystick appears at the initial touch position and **stays anchored until release**.
-- Portrait-first, full-height play area with a player-following camera; bottom-left touch pad and bottom-right Fullscreen/Leave buttons.
+- Portrait-first, full-height play area with a player-following camera; bottom-left touch pad and top-right fullscreen/exit icon buttons.
 - Compact FPS/ping labels inside the play area. Fullscreen toggles where the browser supports it; unsupported browsers keep working normally.
 - Smooth remote movement, application round-trip ping, and local rendering FPS.
 - Adaptive movement traffic: up to 20 updates/second while moving, one/second while idle, and three final-position sends after stopping.
@@ -74,7 +74,7 @@ Open http://127.0.0.1:8080. Do not open `index.html` with `file://`.
 
 To simulate two distinct players, use **two browser profiles, separate browsers, or separate devices**. Two ordinary tabs share one Firebase identity and cannot match each other. New online searches take over an existing online session in another tab.
 
-To test touch controls on a phone using the deployed HTTPS URL is easiest. Portrait mode uses the available height with a player-following camera, rather than shrinking the entire wide arena. The map and movement rules remain identical across devices. Drag in the bottom-left control pad to move; the joystick stays anchored throughout the drag (adjusted inward near edges to stay visible). Fullscreen and Leave are bottom-right, above the safe-area inset. Rotation and browser viewport changes resize the play area automatically. Fullscreen requires browser support; some iPhone browsers do not expose it for arbitrary elements.
+To test touch controls on a phone using the deployed HTTPS URL is easiest. Portrait mode uses the available height with a player-following camera, rather than shrinking the entire wide arena. The map and movement rules remain identical across devices. Drag in the bottom-left control pad to move; the joystick stays anchored throughout the drag (adjusted inward near edges to stay visible). Fullscreen and Leave are top-right icon buttons, respecting safe-area insets; Leave uses a red exit arrow. Rotation and browser viewport changes resize the play area automatically. Fullscreen requires browser support; some iPhone browsers do not expose it for arbitrary elements.
 
 ## Deploy to GitHub Pages
 
@@ -114,7 +114,7 @@ Emulator routing is ignored outside `localhost` / `127.0.0.1`. Restore productio
 
 - An online player is a connected anonymous identity, not a verified human. Abrupt disconnects may take time for Firebase to detect.
 - Presence is visible to authenticated users and includes opaque UIDs; waiting player names are visible in the queue. No chat or email addresses are collected.
-- Searches cancel if the tab becomes hidden. During gameplay, backgrounding reports a notice; browsers may suspend the page or connection.
+- Searches cancel if the tab becomes hidden. During gameplay, no banner is shown just for backgrounding; browsers may suspend the page or connection, so actual connection interruption and timeout notices remain enabled.
 - Clients own their own movement. Bounds and packet shapes are checked, but this is **not an anti-cheat system**.
 - Authentication and rules restrict access, but are not rate limiting. Before promoting publicly, add App Check/abuse protections, usage alerts, TURN, and trusted matchmaking if needed.
 - The full online counter downloads minimal presence state; replace it with an aggregated counter at larger scale.

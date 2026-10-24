@@ -41,7 +41,8 @@ test('touch joystick base stays anchored and resets on release', async ({ browse
   expect(arena.height).toBeGreaterThan(arena.width * 1.5);
   for (const id of ['leave', 'fullscreen']) {
     const box = await page.locator(`#${id}`).boundingBox();
-    expect(box.y).toBeGreaterThan(844 * 0.75);
+    expect(box.y).toBeLessThan(60);
+    expect(box.x).toBeGreaterThan(390 / 2);
     expect(box.x + box.width).toBeLessThanOrEqual(390);
   }
   await expect(page.locator('#fps')).toHaveCSS('font-size', '10px');
@@ -76,6 +77,8 @@ test('fullscreen toggles, preserves gameplay, and exits when leaving', async ({ 
   await page.locator('#practice').click();
   await page.locator('#fullscreen').click();
   await expect(page.locator('#fullscreen')).toHaveAttribute('aria-pressed', 'true');
+  await expect(page.locator('#fullscreen')).toHaveAttribute('aria-label', 'Exit fullscreen');
+  await expect(page.locator('#fullscreen .collapse-icon')).toBeVisible();
   expect(await page.evaluate(() => document.fullscreenElement?.id)).toBe('game');
   await expect(page.locator('#fps')).toHaveText(/FPS \d+/);
   await page.locator('#fullscreen').click();

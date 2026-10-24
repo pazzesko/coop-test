@@ -8,7 +8,9 @@ export function setupFullscreen(button, element, onError) {
 
   function update() {
     const active = current() === element;
-    button.textContent = active ? 'Exit fullscreen' : 'Fullscreen';
+    const label = active ? 'Exit fullscreen' : 'Enter fullscreen';
+    button.setAttribute('aria-label', label);
+    if (supported) button.title = label;
     button.setAttribute('aria-pressed', String(active));
   }
 

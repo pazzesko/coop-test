@@ -87,7 +87,6 @@ export class Connection {
       } else {
         if (message.type === 'ready') { this.remoteReady = true; this.ready(); }
         if (message.type === 'leave') this.fail(new Error('Your partner left the arena.'));
-        if (message.type === 'hidden') this.events.status(message.value ? 'Your partner is in another tab.' : '');
         if (message.type === 'ping' && Number.isSafeInteger(message.id)) this.sendControl({ type: 'pong', id: message.id });
         if (message.type === 'pong' && this.pendingPings.has(message.id)) {
           const rtt = performance.now() - this.pendingPings.get(message.id);

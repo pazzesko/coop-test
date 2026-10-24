@@ -165,7 +165,6 @@ $('practice').addEventListener('click', () => {
 });
 $('leave').addEventListener('click', () => { cleanup(); showMenu(); });
 document.addEventListener('visibilitychange', () => {
-  connection?.sendControl({ type: 'hidden', value: document.hidden });
   if (document.hidden && ['searching', 'connecting'].includes(phase)) cancelSearch('Search paused because this tab became inactive. Press Play online to search again.');
 });
 window.addEventListener('pagehide', () => {
