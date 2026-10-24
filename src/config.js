@@ -1,11 +1,11 @@
 // Firebase web configuration is public. Never put service-account keys here.
 // Copy the web-app configuration from Firebase Console → Project settings.
 export const firebaseConfig = {
-  apiKey: '',
+  apiKey: 'AIzaSyBdbnG3t7agEHLQCFoXxkVgWNxRxqZ2lWk',
   authDomain: 'coop-test-3d2ba.firebaseapp.com',
   databaseURL: 'https://coop-test-3d2ba-default-rtdb.europe-west1.firebasedatabase.app',
   projectId: 'coop-test-3d2ba',
-  appId: '',
+  appId: '1:108720401286:web:4c2b1e1da697f3e630da07',
 };
 
 // STUN works on many networks, but not all. Add a credential endpoint for TURN
