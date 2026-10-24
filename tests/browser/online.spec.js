@@ -60,6 +60,10 @@ test('two players are counted, randomly paired, exchange movement and ping, then
   try {
     await expect(alice.page.locator('#online-count')).toHaveText('2 players online');
     await expect(bob.page.locator('#online-count')).toHaveText('2 players online');
+    await expect(alice.page.locator('#online-list')).toContainText('Bob');
+    await expect(bob.page.locator('#online-list')).toContainText('Alice');
+    await expect(alice.page.locator('#online-list li')).toHaveCount(2);
+    await expect(alice.page.locator('#presence-note')).toBeHidden();
     await Promise.all([alice.page.locator('#play').click(), bob.page.locator('#play').click()]);
     await expect(alice.page.locator('#game'), JSON.stringify(alice.errors)).toBeVisible({ timeout: 25000 });
     await expect(bob.page.locator('#game'), JSON.stringify(bob.errors)).toBeVisible({ timeout: 25000 });
@@ -135,6 +139,7 @@ test('multiple tabs share one online identity', async ({ browser }) => {
     await second.goto('/');
     await expect(second.locator('#play')).toBeEnabled();
     await expect(second.locator('#online-count')).toHaveText('1 player online');
+    await expect(second.locator('#online-list li')).toHaveCount(1);
     await second.close();
     await expect(alice.page.locator('#online-count')).toHaveText('1 player online');
   } finally { await alice.context.close(); }
@@ -167,5 +172,21 @@ test('adaptive movement survives jitter and a lost stop packet, then stays still
     expect(settled.equals(await bob.page.locator('#arena').screenshot({ mask: [bob.page.locator('.metrics')] }))).toBe(true);
     expect(alice.errors).toEqual([]);
     expect(bob.errors).toEqual([]);
+  } finally { await alice.context.close(); await bob.context.close(); }
+});
+
+test('online names update live, render safely, and disappear on disconnect', async ({ browser }) => {
+  const alice = await player(browser, '<b>Alice</b>');
+  const bob = await player(browser, 'Bob');
+  try {
+    await expect(bob.page.locator('#online-list')).toContainText('<b>Alice</b>');
+    await expect(bob.page.locator('#online-list b')).toHaveCount(0);
+    await alice.page.locator('#edit-name').click();
+    await alice.page.locator('#name-input').fill('Alicia');
+    await alice.page.locator('#name-form button').click();
+    await expect(bob.page.locator('#online-list')).toContainText('Alicia');
+    await alice.context.close();
+    await expect(bob.page.locator('#online-count')).toHaveText('1 player online', { timeout: 15000 });
+    await expect(bob.page.locator('#online-list')).not.toContainText('Alicia');
   } finally { await alice.context.close(); await bob.context.close(); }
 });

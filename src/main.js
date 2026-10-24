@@ -2,6 +2,7 @@ import { Backend } from './backend.js';
 import { Connection } from './network.js';
 import { Game } from './game.js';
 import { setupFullscreen } from './fullscreen.js';
+import { renderPlayers } from './presence.js';
 
 const $ = id => document.getElementById(id);
 const game = new Game({ arena: $('arena'), movementPad: $('movement-pad'), joystick: $('joystick'), knob: $('joystick-knob'), fps: $('fps') });
@@ -37,6 +38,7 @@ const backend = new Backend({
   connection(value) {
     connected = value;
     if (!value) $('online-count').textContent = 'Offline';
+    if (!value) renderPlayers($('online-list'), [], false);
     if (phase === 'menu') message(value ? 'Ready. Find a partner and explore the arena.' : 'Connecting to online services…');
     if (!value && phase === 'searching') {
       cancelSearch('Connection lost. Reconnect, then try again.');
@@ -44,6 +46,8 @@ const backend = new Backend({
     updateMenu();
   },
   count(value) { $('online-count').textContent = `${value} player${value === 1 ? '' : 's'} online`; },
+  players(value) { renderPlayers($('online-list'), value, connected); },
+  presenceNamesUnavailable(value) { $('presence-note').hidden = !value; },
   error(error) {
     console.error(error);
     if (['searching', 'connecting'].includes(phase)) cancelSearch(friendlyError(error));
@@ -140,6 +144,7 @@ $('name-form').addEventListener('submit', event => {
   const value = cleanName($('name-input').value);
   if (!value) { $('name-input').setCustomValidity('Enter at least one visible character.'); $('name-input').reportValidity(); return; }
   name = value;
+  backend.setName(name).catch(error => { message(friendlyError(error)); });
   try { localStorage.setItem('coop-test-name', name); } catch { /* Name works for this session. */ }
   updateMenu();
 });
@@ -179,10 +184,12 @@ window.addEventListener('pageshow', event => {
 });
 
 showMenu();
+backend.setName(name);
 backend.init().catch(error => {
   connected = false;
   bootError = friendlyError(error);
   $('online-count').textContent = 'Online setup needed';
+  renderPlayers($('online-list'), [], false);
   message(bootError);
   updateMenu();
 });

@@ -24,6 +24,14 @@ test('presence requires auth and only its owner may write', async () => {
   await assertFails(env.unauthenticatedContext().database().ref('v1/presence').once('value'));
 });
 
+test('presence accepts bounded names, rejects extra data, and prevents impersonation', async () => {
+  await assertSucceeds(db('alice').ref('v1/presence/alice/tab-1').set({ name: 'Alice' }));
+  await assertFails(db('bob').ref('v1/presence/alice/tab-1/name').set('Forged'));
+  await assertFails(db('alice').ref('v1/presence/alice/tab-1').set({ name: '' }));
+  await assertFails(db('alice').ref('v1/presence/alice/tab-1').set({ name: 'x'.repeat(21) }));
+  await assertFails(db('alice').ref('v1/presence/alice/tab-1').set({ name: 'Alice', secret: 'no' }));
+});
+
 test('queue listing is bounded and ticket updates are owner-only', async () => {
   await assertSucceeds(db('alice').ref('v1/tickets/alice').set(ticket()));
   await assertSucceeds(db('bob').ref('v1/tickets').orderByChild('createdAt').limitToLast(30).once('value'));

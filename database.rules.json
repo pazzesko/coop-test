@@ -8,7 +8,9 @@
         "$uid": {
           "$connection": {
             ".write": "auth != null && auth.uid === $uid",
-            ".validate": "newData.val() === true"
+            ".validate": "newData.val() === true || newData.hasChildren(['name'])",
+            "name": { ".validate": "newData.isString() && newData.val().length >= 1 && newData.val().length <= 20" },
+            "$other": { ".validate": false }
           }
         }
       },

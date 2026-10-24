@@ -11,25 +11,29 @@
 <body>
   <main>
     <section id="menu" class="panel">
-      <span class="eyebrow">MULTIPLAYER LAB · MVP</span>
       <h1>COOP<span>TEST</span></h1>
-      <p class="intro">A tiny arena. Two players. One connection.</p>
+      <p class="intro">Find a partner. Explore together.</p>
       <form id="name-form" hidden>
-        <label for="name-input">What should we call you?</label>
+        <label for="name-input">Your name</label>
         <input id="name-input" name="name" minlength="1" maxlength="20" autocomplete="nickname" placeholder="Your player name" required>
-        <button type="submit">Let’s go →</button>
+        <button type="submit">Continue →</button>
       </form>
       <div id="lobby" hidden>
-        <div class="identity"><span>Playing as <strong id="player-name"></strong></span><button id="edit-name" class="text-button">Edit</button></div>
-        <div class="presence"><span id="status-dot" class="dot"></span><span id="online-count">Connecting…</span></div>
+        <div class="identity"><strong id="player-name"></strong><button id="edit-name" class="text-button">Change name</button></div>
         <p id="status" role="status" aria-live="polite">Getting ready…</p>
         <button id="play" disabled>Play online →</button>
         <button id="cancel" class="secondary" hidden>Cancel search</button>
-        <button id="practice" class="secondary">Try movement offline</button>
-        <p class="privacy">Online play connects browsers directly and may reveal your IP address to your partner. Names are visible to other players. No chat, accounts, or progress to lose.</p>
+        <button id="practice" class="secondary">Practice offline</button>
       </div>
-      <p class="controls-note">WASD / arrows on desktop · bottom-left stick on touch</p>
-      <a class="source" href="https://github.com/pazzesko/coop-test" target="_blank" rel="noopener">Source on GitHub ↗</a>
+      <section class="online-section" aria-label="Players online">
+        <div class="presence"><span id="status-dot" class="dot"></span><span id="online-count">Connecting…</span></div>
+        <ul id="online-list" aria-label="Online player names"><li class="empty-roster">Connecting to players…</li></ul>
+        <p id="presence-note" hidden>Names need updated <a href="https://github.com/pazzesko/coop-test/blob/main/database.rules.json" target="_blank" rel="noopener">Firebase rules</a>. Online play still works.</p>
+      </section>
+      <footer class="menu-footer">
+        <details class="privacy"><summary>Connection & privacy</summary><p>Names are visible to other players. Online play connects browsers directly and may reveal your IP address to your partner. WASD / arrows or the bottom-left touch stick to move.</p></details>
+        <a class="source" href="https://github.com/pazzesko/coop-test" target="_blank" rel="noopener">GitHub ↗</a>
+      </footer>
     </section>
     <section id="game" hidden aria-label="Game arena">
       <canvas id="arena" aria-label="Move with WASD, arrow keys, or the touch joystick"></canvas>

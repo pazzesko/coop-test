@@ -1,4 +1,5 @@
 import { firebaseConfig, emulatorConfig } from './config.js';
+import { onlinePlayers } from './presence.js';
 
 const ROOT = 'v1';
 const SDK = 'https://www.gstatic.com/firebasejs/13.1.0/';
@@ -44,10 +45,13 @@ export class Backend {
       try {
         const presence = this.ref(`presence/${this.uid}/${this.session}`);
         await dbSDK.onDisconnect(presence).remove();
-        await dbSDK.set(presence, true);
+        await this.writePresence();
       } catch (error) { this.events.error(error); }
     });
-    dbSDK.onValue(this.ref('presence'), s => this.events.count(s.size), error => this.events.error(error));
+    dbSDK.onValue(this.ref('presence'), s => {
+      this.presence = s.val();
+      this.publishPlayers();
+    }, error => this.events.error(error));
     // Anonymous auth is persisted by Firebase. Multiple tabs share an identity,
     // but each has its own presence connection; the counter counts unique UIDs.
     this.channel = typeof BroadcastChannel !== 'undefined' ? new BroadcastChannel('coop-test-session') : null;
@@ -60,6 +64,33 @@ export class Backend {
   }
 
   ref(path, root = true) { return this.sdk.ref(this.db, root ? `${ROOT}/${path}` : path); }
+
+  publishPlayers() {
+    const players = onlinePlayers(this.presence, this.uid, this.name);
+    this.events.count(players.length);
+    this.events.players(players);
+  }
+
+  async setName(name) {
+    this.name = name;
+    if (!this.db) return;
+    this.publishPlayers();
+    if (this.connected) await this.writePresence();
+  }
+
+  async writePresence() {
+    const presence = this.ref(`presence/${this.uid}/${this.session}`);
+    try {
+      await this.sdk.set(presence, { name: this.name || 'Guest' });
+      this.events.presenceNamesUnavailable(false);
+    } catch (error) {
+      if (!/permission[_ -]?denied/i.test(`${error.code} ${error.message}`)) throw error;
+      // The first MVP rules accepted only `true`. Preserve presence/matchmaking
+      // until the owner publishes the new named-presence rules.
+      await this.sdk.set(presence, true);
+      this.events.presenceNamesUnavailable(true);
+    }
+  }
 
   async search(name) {
     if (!this.connected) throw new Error('Not connected to matchmaking. Check your internet connection.');

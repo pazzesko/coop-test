@@ -5,3 +5,4 @@ playwright-report/
 firebase-debug.log
 database-debug.log
 .env*
+_site/

@@ -7,7 +7,7 @@ A tiny two-player browser co-op sandbox. Original code and geometric artwork; no
 ## Features
 
 - First-visit player name, saved locally; editable from the menu.
-- Live online counter, deduplicated by anonymous browser identity across tabs.
+- Live online counter and player-name roster, deduplicated by anonymous browser identity across tabs. Your own entry appears first.
 - Automatic pairing with a random eligible waiting player; cancel anytime.
 - Two-player arena with WASD/arrow keys, collision, and mobile touch joystick.
 - The joystick appears at the initial touch position and **stays anchored until release**.
@@ -37,11 +37,13 @@ Use your own Firebase project, currently intended to be `coop-test-3d2ba`:
 
 Firebase web configuration/API keys identify the app; they are not admin credentials. Database rules are the security boundary.
 
+**Upgrading from the counter-only MVP:** publish the current `database.rules.json` again, then refresh clients. Named presence now stores `{ name }` instead of just `true`. Until the rules are updated, the app falls back to the old presence format so matchmaking still works, but other players appear as **Guest** and the menu shows a setup note. Names from older tabs remain Guest until those tabs refresh.
+
 ### Data layout
 
 ```text
 v1/
-  presence/{uid}/{tabId}: true
+  presence/{uid}/{tabId}: { name }  # legacy clients may still write true
   tickets/{uid}: { token, name, state, createdAt, expiresAt, claim? }
   signals/{hostUid}/{matchToken}/{senderUid}/{messageId}: JSON string
 ```
@@ -80,7 +82,7 @@ To test touch controls on a phone using the deployed HTTPS URL is easiest. Portr
 
 Repository Settings → Pages → Source → **GitHub Actions**. Push to `main`.
 
-`.github/workflows/pages.yml` deploys only `index.html`, `style.css`, and `src/`; tests, dependencies, and Firebase tooling are not published. Asset URLs are relative so project Pages URLs work.
+`.github/workflows/pages.yml` runs `python3 tools/build_site.py` to stage only `index.html`, `style.css`, and `src/`; tests, dependencies, and Firebase tooling are not published. CSS and the complete local JavaScript module graph live under a content-hashed asset directory, so a refresh cannot mix an old cached stylesheet/module with a new release. Asset URLs are relative so project Pages URLs work. Local development still has no frontend build step.
 
 ## Tests
 
@@ -113,7 +115,7 @@ Emulator routing is ignored outside `localhost` / `127.0.0.1`. Restore productio
 ## Scope and safety
 
 - An online player is a connected anonymous identity, not a verified human. Abrupt disconnects may take time for Firebase to detect.
-- Presence is visible to authenticated users and includes opaque UIDs; waiting player names are visible in the queue. No chat or email addresses are collected.
+- Presence is visible to authenticated users and includes opaque UIDs and display names. The menu shows online names even before you queue. No chat or email addresses are collected.
 - Searches cancel if the tab becomes hidden. During gameplay, no banner is shown just for backgrounding; browsers may suspend the page or connection, so actual connection interruption and timeout notices remain enabled.
 - Clients own their own movement. Bounds and packet shapes are checked, but this is **not an anti-cheat system**.
 - Authentication and rules restrict access, but are not rate limiting. Before promoting publicly, add App Check/abuse protections, usage alerts, TURN, and trusted matchmaking if needed.

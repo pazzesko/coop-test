@@ -7,9 +7,9 @@ body { margin: 0; min-height: 100dvh; background: radial-gradient(ellipse at 50%
 main { min-height: 100dvh; display: grid; place-items: center; padding: 24px; }
 .panel { width: min(100%, 460px); padding: 36px; border: 1px solid #29364e; background: #101a2ae8; border-radius: 24px; box-shadow: 0 24px 90px #0005; }
 .eyebrow { display: block; color: #8fa2bd; font-size: 10px; letter-spacing: 2px; font-weight: 700; }
-h1 { margin: 18px 0 8px; font-size: clamp(40px, 10vw, 56px); letter-spacing: -3px; line-height: 1; }
+h1 { margin: 0 0 8px; font-size: clamp(40px, 10vw, 56px); letter-spacing: -3px; line-height: 1; }
 h1 span { color: #70e3bb; }
-.intro { color: #a3b3c9; margin: 16px 0 30px; }
+.intro { color: #a3b3c9; margin: 12px 0 24px; font-size: 14px; }
 label { display: block; margin-bottom: 12px; font-weight: 500; }
 input { width: 100%; background: #0b1220; color: #fff; border: 1px solid #3b4d69; border-radius: 10px; padding: 14px; font: inherit; margin-bottom: 14px; }
 button { border: 0; border-radius: 10px; background: #70e3bb; color: #10251e; padding: 14px 20px; font: inherit; font-weight: 700; cursor: pointer; min-height: 44px; }
@@ -20,12 +20,25 @@ button:focus-visible, input:focus-visible, a:focus-visible { outline: 3px solid 
 #practice, #cancel { margin-top: 10px; }
 .text-button { padding: 4px 0 4px 12px; background: none; color: #70e3bb; font-size: 13px; }
 .identity { display: flex; align-items: center; justify-content: space-between; font-size: 14px; }
-.presence { display: flex; align-items: center; gap: 9px; margin-top: 16px; color: #a8bad2; font-size: 13px; }
+.presence { display: flex; align-items: center; gap: 9px; color: #a8bad2; font-size: 12px; }
 .dot { width: 7px; height: 7px; background: #7b879d; border-radius: 50%; }
 .dot.connected { background: #70e3bb; box-shadow: 0 0 14px #70e3bb66; }
-#status { min-height: 44px; font-size: 14px; line-height: 1.5; color: #c1cee0; overflow-wrap: anywhere; }
+#status { min-height: 20px; margin: 4px 0 16px; font-size: 12px; line-height: 1.5; color: #a3b3c9; overflow-wrap: anywhere; }
 .privacy, .controls-note { color: #91a4bf; font-size: 11px; line-height: 1.65; }
-.privacy { margin-top: 20px; }
+.privacy { position: relative; }
+.privacy summary { cursor: pointer; }
+.privacy p { max-width: 250px; margin-bottom: 0; }
+.menu-footer { display: flex; align-items: baseline; justify-content: space-between; gap: 12px; margin-top: 20px; }
+.online-section { border-top: 1px solid #29364e; margin-top: 24px; padding-top: 18px; }
+#online-list { padding: 0; margin: 12px 0 0; list-style: none; max-height: 160px; overflow-y: auto; overscroll-behavior: contain; }
+#online-list li { display: flex; align-items: center; gap: 10px; min-height: 36px; padding: 4px 0; font-size: 13px; }
+.player-avatar { display: grid; place-items: center; width: 27px; height: 27px; flex: 0 0 27px; border-radius: 8px; background: #243952; color: #c0d4f0; font-size: 11px; }
+.self .player-avatar { background: #70e3bb20; color: #70e3bb; }
+.roster-name { min-width: 0; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.you-label { margin-left: auto; color: #70e3bb; font-size: 10px; }
+#online-list .empty-roster { color: #8298b5; font-size: 12px; }
+#presence-note { margin-bottom: 0; font-size: 11px; line-height: 1.5; color: #e2bc82; }
+#presence-note a { color: inherit; }
 .controls-note { border-top: 1px solid #29364e; padding-top: 20px; margin-top: 25px; }
 .source { color: #91a4bf; font-size: 11px; text-decoration: none; }
 #game { --controls-height: calc(80px + env(safe-area-inset-bottom)); position: fixed; inset: 0; background: #0b1020; touch-action: none; overflow: hidden; user-select: none; -webkit-user-select: none; }
@@ -40,7 +53,7 @@ button:focus-visible, input:focus-visible, a:focus-visible { outline: 3px solid 
 .desktop-help { display: flex; align-items: center; gap: 5px; font-size: 11px; color: #91a4bf; }
 .desktop-help span { margin-left: 6px; }
 kbd { border: 1px solid #3b526f; padding: 5px; border-radius: 5px; color: #b8c9df; }
-.game-actions { position: absolute; top: max(12px, env(safe-area-inset-top)); right: max(14px, env(safe-area-inset-right)); display: flex; gap: 8px; }
+.game-actions { position: absolute; z-index: 5; top: max(12px, env(safe-area-inset-top)); right: max(14px, env(safe-area-inset-right)); display: flex; gap: 8px; pointer-events: auto; }
 .icon-button { display: grid; place-items: center; width: 44px; height: 44px; padding: 10px; border: 1px solid #536d8b55; border-radius: 10px; color: #d5e4f5; background: #142238df; }
 .icon-button svg { width: 22px; height: 22px; fill: none; stroke: currentColor; stroke-width: 1.8; stroke-linecap: round; stroke-linejoin: round; pointer-events: none; }
 .exit-button { color: #ff8d99; border-color: #d95b6c66; background: #421d2cdd; }
