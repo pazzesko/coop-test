@@ -134,10 +134,10 @@ test('fight snapshots are bounded, validated and include authoritative health', 
 });
 
 test('world pixels have an integer display scale on phone, landscape and desktop', () => {
-  assert.equal(ART_UNIT, 2);
+  assert.equal(ART_UNIT, 1);
   for (const [w, h] of [[390, 660], [393, 667], [844, 242], [1280, 672]]) {
     const viewport = pixelViewport(w, h);
-    assert.ok(Number.isInteger(viewport.scale) && viewport.scale >= 2);
+    assert.ok(Number.isInteger(viewport.scale) && viewport.scale >= 1);
     assert.ok(viewport.width * viewport.scale >= w);
     assert.ok(viewport.height * viewport.scale >= h);
     assert.ok(viewport.width * viewport.scale - w < viewport.scale);

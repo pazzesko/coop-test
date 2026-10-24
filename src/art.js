@@ -1,11 +1,12 @@
-// Every asset shares one native grid: 1 source pixel = 2 world units.
+// Every asset shares one native grid: 1 source pixel = 1 world unit.
 import { WIDTH, HEIGHT, WALLS } from './world.js';
 import { heroSprite, orcSprite } from './brawler-art.js';
 import { pixelPolygon, pixelOval } from './pixel.js';
 export { heroSprite, HERO_SIZE, BOSS_SIZE } from './brawler-art.js';
 export { pixelLine } from './pixel.js';
 
-export const ART_UNIT = 2;
+import { ART_UNIT } from './scale.js';
+export { ART_UNIT } from './scale.js';
 
 function surface(width, height) {
   const canvas = document.createElement('canvas');
@@ -97,7 +98,7 @@ export function createArt() {
     p(x, y, 2 + i % 3, 1, i % 2 ? '#78858b' : '#3f5269');
   }
   for (const wall of WALLS) {
-    const x = Math.floor(wall.x / 2), y = Math.floor(wall.y / 2), w = Math.floor(wall.w / 2), h = Math.floor(wall.h / 2);
+    const x = Math.floor(wall.x / ART_UNIT), y = Math.floor(wall.y / ART_UNIT), w = Math.floor(wall.w / ART_UNIT), h = Math.floor(wall.h / ART_UNIT);
     p(x, y, w, h, '#1b293e'); p(x + 1, y + 1, w - 2, h - 3, '#6a778a'); p(x + 1, y + 1, w - 2, 2, '#bac0b3');
     p(x + 2, y + 3, w - 4, 1, '#8d9aa4');
     for (let by = y + 5; by < y + h - 2; by += 8) for (let bx = x + 2; bx < x + w - 2; bx += 16) {
@@ -123,7 +124,7 @@ export function createArt() {
   for (let r = 39; r >= 7; r -= 8) { glowCtx.globalAlpha = 0.035; pixelOval(glowCtx, 40, 40, r, r, '#ffc566'); }
   return { floor, heroes, orc, grave, glow, flames: Array.from({ length: 4 }, (_, frame) => flameSprite(frame)),
     rocks: Array.from({ length: 4 }, (_, frame) => rockSprite(frame)), smoke: Array.from({ length: 6 }, (_, frame) => smokeSprite(frame)),
-    torches: [{ x: 180, y: 76 }, { x: 380, y: 76 }, { x: 180, y: 284 }, { x: 380, y: 284 }] };
+    torches: [{ x: 360, y: 152 }, { x: 760, y: 152 }, { x: 360, y: 568 }, { x: 760, y: 568 }] };
 }
 
 const GLYPHS = {
@@ -147,6 +148,6 @@ export function pixelText(ctx, text, x, y, color = '#f4e9c9') {
 }
 
 export function pixelViewport(width, height) {
-  const scale = Math.max(2, Math.ceil(width / (WIDTH / ART_UNIT)), Math.ceil(height / (HEIGHT / ART_UNIT)));
+  const scale = Math.max(1, Math.ceil(width / (WIDTH / ART_UNIT)), Math.ceil(height / (HEIGHT / ART_UNIT)));
   return { scale, width: Math.ceil(width / scale), height: Math.ceil(height / scale) };
 }

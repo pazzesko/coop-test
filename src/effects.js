@@ -1,4 +1,5 @@
 // Cosmetic only: no collision, game-clock pauses, or extra network messages.
+import { ART_UNIT } from './scale.js';
 const COLORS = {
   hit: ['#fff0c7', '#e4af69', '#98634c'], 'fire-hit': ['#fff3bd', '#eeaa58', '#c45345'],
   slam: ['#e8c59a', '#92767c', '#57516c'], hurt: ['#efbfab', '#d76e68', '#8d465a'],
@@ -34,7 +35,7 @@ export class Effects {
         const speed = (event.kind === 'slam' ? 30 : 15) + ((i * 17) % 33);
         const rock = event.kind === 'slam';
         const spread = rock ? event.value * 0.13 : 0;
-        this.particles.push({ x: event.x / 2 + Math.cos(angle) * spread, y: event.y / 2 + Math.sin(angle) * spread,
+        this.particles.push({ x: event.x / ART_UNIT + Math.cos(angle) * spread, y: event.y / ART_UNIT + Math.sin(angle) * spread,
           vx: Math.cos(angle) * speed, vy: Math.sin(angle) * speed - (rock ? 35 : 12), kind: rock ? 'rock' : 'spark', frame: i % 4,
           start, life: rock ? 0.55 + seed * 0.25 : 0.25 + seed * 0.35, color: colors[i % colors.length], size: i % 5 === 0 ? 2 : 1 });
       }
@@ -43,13 +44,13 @@ export class Effects {
         const puffs = this.reduced ? 3 : 12;
         for (let i = 0; i < puffs; i++) {
           const angle = i * 2.39996 + event.id;
-          const reach = event.value / 2 * Math.sqrt((i + 0.5) / puffs) * 0.75;
-          this.smoke.push({ x: event.x / 2 + Math.cos(angle) * reach, y: event.y / 2 + Math.sin(angle) * reach,
+          const reach = event.value / ART_UNIT * Math.sqrt((i + 0.5) / puffs) * 0.75;
+          this.smoke.push({ x: event.x / ART_UNIT + Math.cos(angle) * reach, y: event.y / ART_UNIT + Math.sin(angle) * reach,
             vx: Math.cos(angle) * 9, vy: -10 - i % 5, start, life: 0.7 + (i % 4) * 0.1 });
         }
       }
       if (event.value > 0 && ['hit', 'fire-hit', 'hurt'].includes(event.kind)) {
-        this.numbers.push({ x: event.x / 2, y: event.y / 2 - 25, value: event.value, color: event.kind === 'hurt' ? '#eea49b' : '#ffe2a6', start });
+        this.numbers.push({ x: event.x / ART_UNIT, y: event.y / ART_UNIT - 25, value: event.value, color: event.kind === 'hurt' ? '#eea49b' : '#ffe2a6', start });
       }
       if (['hit', 'fire-hit'].includes(event.kind)) this.bossFlashUntil = Math.max(this.bossFlashUntil, start + 0.09);
       if (!this.reduced && ['slam', 'fire-hit', 'hurt'].includes(event.kind) && age < 0.15) {

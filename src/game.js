@@ -1,7 +1,7 @@
 import { Input } from './input.js';
 import { MovementSender, RemoteMovement } from './movement.js';
 import { Fight, CLASSES, classOf, heroAction, moveHero, validFight, DODGE_COOLDOWN } from './combat.js';
-import { createArt, pixelViewport, pixelText, pixelLine, HERO_SIZE, BOSS_SIZE } from './art.js';
+import { createArt, pixelViewport, pixelText, pixelLine, HERO_SIZE, BOSS_SIZE, ART_UNIT } from './art.js';
 import { pixelOval } from './pixel.js';
 import { drawGround } from './ground.js';
 import { battleCameraFor } from './camera.js';
@@ -161,7 +161,7 @@ export class Game {
       for (const player of this.fight.players) {
         if (player.hp <= 0 || player.dodgeUntil <= this.fight.t) continue;
         const position = player.index === this.localIndex ? player : this.remoteRender;
-        this.trails.push({ x: Math.round(position.x / 2), y: Math.round(position.y / 2), classId: player.classId, left: this.facing[player.index], start: this.visualNow });
+        this.trails.push({ x: Math.round(position.x / ART_UNIT), y: Math.round(position.y / ART_UNIT), classId: player.classId, left: this.facing[player.index], start: this.visualNow });
       }
     }
     if (this.connection) {
@@ -244,7 +244,7 @@ export class Game {
     }
     for (const shot of this.fight.shots) {
       const elapsed = this.host ? 0 : Math.max(0, Math.min(this.fight.t - this.snapshotTime, 0.12));
-      const x = Math.round((shot.x + shot.vx * elapsed) / 2), y = Math.round((shot.y + shot.vy * elapsed) / 2);
+      const x = Math.round((shot.x + shot.vx * elapsed) / ART_UNIT), y = Math.round((shot.y + shot.vy * elapsed) / ART_UNIT);
       ctx.fillStyle = shot.kind === 'mage' ? '#e49162' : '#e5d2a4';
       if (shot.kind === 'mage') {
         for (let i = 4; i >= 1; i--) {
@@ -279,7 +279,7 @@ export class Game {
 
   drawBoss(ctx) {
     const boss = this.fight.boss;
-    const x = Math.round(this.bossRender.x / 2), y = Math.round(this.bossRender.y / 2);
+    const x = Math.round(this.bossRender.x / ART_UNIT), y = Math.round(this.bossRender.y / ART_UNIT);
     ctx.globalAlpha = 0.55; pixelOval(ctx, x, y, 25, 6, '#17243b'); ctx.globalAlpha = 1;
     const target = this.fight.players.filter(player => player.hp > 0)
       .sort((a, b) => Math.hypot(a.x - boss.x, a.y - boss.y) - Math.hypot(b.x - boss.x, b.y - boss.y))[0];
@@ -295,7 +295,7 @@ export class Game {
 
   drawHero(ctx, player, index) {
     const position = index === this.localIndex ? player : this.remoteRender;
-    const x = Math.round(position.x / 2), y = Math.round(position.y / 2);
+    const x = Math.round(position.x / ART_UNIT), y = Math.round(position.y / ART_UNIT);
     if (player.hp <= 0) {
       ctx.drawImage(this.art.grave, x - 10, y - 12);
       pixelText(ctx, this.names[index], x, y - 19, '#b0b4a8');
@@ -306,7 +306,7 @@ export class Game {
     if (Math.abs(this.fight.boss.x - position.x) > 12) this.facing[index] = position.x > this.fight.boss.x;
     const flash = !this.effects.reduced && player.hurtUntil - this.fight.t > 0.21;
     const key = flash ? (this.facing[index] ? 'flashLeft' : 'flashRight') : (this.facing[index] ? 'left' : 'right');
-    ctx.drawImage(this.art.heroes[player.classId][animation.pose][animation.frame][key], x - HERO_SIZE.x, y - HERO_SIZE.y);
+    ctx.drawImage(this.art.heroes[player.classId][animation.pose][animation.frame][key], x - (this.facing[index] ? HERO_SIZE.width - HERO_SIZE.x : HERO_SIZE.x), y - HERO_SIZE.y);
     if (player.classId === 'barbarian' && animation.pose === 'attack' && animation.frame > 0) {
       const heading = Math.atan2(this.fight.boss.y - position.y, this.fight.boss.x - position.x);
       ctx.globalAlpha = animation.frame === 1 ? 1 : 0.35;

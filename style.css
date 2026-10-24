@@ -43,7 +43,7 @@ button:focus-visible, input:focus-visible, a:focus-visible { outline: 3px solid 
 .class-card:has(input:checked) { border-color: #ffd06a; background: #2d5369; color: #fff0bc; }
 .class-card:has(input:focus-visible) { outline: 2px solid #c8e1d9; outline-offset: 2px; }
 .class-card input { position: absolute; opacity: 0; width: 1px; height: 1px; margin: 0; padding: 0; }
-.class-card canvas { width: 56px; height: 60px; image-rendering: pixelated; }
+.class-card canvas { width: 96px; height: 104px; image-rendering: pixelated; }
 #class-description { font-size: 11px; color: #b8ba9a; min-height: 16px; margin: 8px 0 12px; }
 .controls-note { border-top: 1px solid #29364e; padding-top: 20px; margin-top: 25px; }
 .source { color: #91a4bf; font-size: 11px; text-decoration: none; }

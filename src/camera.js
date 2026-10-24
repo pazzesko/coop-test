@@ -12,11 +12,12 @@ export function pixelCameraFor(width, height, focus) {
 
 export function battleCameraFor(width, height, player, boss) {
   const focus = { ...player };
-  if (Math.hypot(player.x - boss.x, player.y - boss.y) < 400) focus.y = Math.min(player.y, boss.y - 60);
+  if (Math.hypot(player.x - boss.x, player.y - boss.y) < 400) focus.y = Math.min(player.y, boss.y - 100);
   const camera = pixelCameraFor(width, height, focus);
-  // Leave headroom for the larger boss, but never frame the local hero out of
-  // view when retreating. Both constraints remain integer native pixels.
-  const followFloor = Math.max(0, Math.min(HEIGHT / ART_UNIT - height, player.y / ART_UNIT - height * 0.78));
+  // Leave headroom for the larger boss and its HUD, but never frame the local
+  // hero out of view when retreating. Both constraints remain integer native
+  // pixels; the hero sits low in the frame like classic brawler camera work.
+  const followFloor = Math.max(0, Math.min(HEIGHT / ART_UNIT - height, player.y / ART_UNIT - height * 0.9));
   camera.y = Math.max(camera.y, Math.ceil(followFloor));
   return camera;
 }

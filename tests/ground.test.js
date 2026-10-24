@@ -8,7 +8,7 @@ test('ground layouts are deterministic and the rubble stays inside the damage ar
   const layout = groundLayout(12, 104);
   assert.deepEqual(groundLayout(12, 104), layout);
   assert.notDeepEqual(groundLayout(13, 104), layout);
-  assert.ok(layout.stones.every(stone => Math.hypot(stone.x, stone.y) <= 52));
+  assert.ok(layout.stones.every(stone => Math.hypot(stone.x, stone.y) <= 104));
   assert.ok(layout.patch.every(([x, y]) => Number.isInteger(x) && Number.isInteger(y)));
   assert.ok(new Set(layout.patch.map(([x, y]) => Math.round(Math.hypot(x, y)))).size > 1);
 });

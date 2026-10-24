@@ -1,4 +1,5 @@
 import { pixelLine, pixelPolygon } from './pixel.js';
+import { ART_UNIT } from './scale.js';
 
 const cache = new Map();
 export function groundLayout(id, radius) {
@@ -6,7 +7,7 @@ export function groundLayout(id, radius) {
   if (cache.has(key)) return cache.get(key);
   let seed = (id * 1103515245 + 12345) >>> 0;
   const random = () => { seed = (Math.imul(seed, 1664525) + 1013904223) >>> 0; return seed / 4294967296; };
-  const r = radius / 2;
+  const r = radius / ART_UNIT;
   const patch = Array.from({ length: 16 }, (_, i) => {
     const angle = i * Math.PI / 8, reach = r * (0.94 + random() * 0.09);
     return [Math.round(Math.cos(angle) * reach), Math.round(Math.sin(angle) * reach)];
@@ -33,7 +34,7 @@ export function groundLayout(id, radius) {
 
 export function drawGround(ctx, art, zone, time, reduced = false, scar = false) {
   const layout = groundLayout(zone.source || zone.id, zone.r);
-  const x = Math.round(zone.x / 2), y = Math.round(zone.y / 2);
+  const x = Math.round(zone.x / ART_UNIT), y = Math.round(zone.y / ART_UNIT);
   const remaining = zone.hitAt - time;
   const age = Math.max(0, time - zone.hitAt);
   if (scar && age > 1.2) return;
