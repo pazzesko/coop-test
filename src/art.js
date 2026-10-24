@@ -60,6 +60,15 @@ function smokeSprite(frame) {
   return canvas;
 }
 
+// TMNT-style impact stars: chunky four-point bursts with a bright core.
+function starSprite(big) {
+  const R = big ? 10 : 6, r = big ? 3 : 2, c = R + 1;
+  const canvas = surface(c * 2 + 1, c * 2 + 1), ctx = canvas.getContext('2d');
+  pixelPolygon(ctx, [[c, c - R], [c + r, c - r], [c + R, c], [c + r, c + r], [c, c + R], [c - r, c + r], [c - R, c], [c - r, c - r]], '#ffd23e', '#7a3b17', true);
+  pixelPolygon(ctx, [[c, c - R + 3], [c + r - 1, c - r + 1], [c + R - 3, c], [c + r - 1, c + r - 1], [c, c + R - 3], [c - r + 1, c + r - 1], [c - R + 3, c], [c - r + 1, c - r + 1]], '#fff6d8', null);
+  return canvas;
+}
+
 export function actionIcon(kind) {
   const canvas = surface(20, 20), ctx = canvas.getContext('2d'), p = painter(canvas);
   if (kind === 'dodge') {
@@ -81,33 +90,58 @@ export function actionIcon(kind) {
 
 export function createArt() {
   const floor = surface(WIDTH / ART_UNIT, HEIGHT / ART_UNIT), p = painter(floor), ctx = floor.getContext('2d');
-  p(0, 0, floor.width, floor.height, '#354359');
-  for (let y = 0; y < floor.height; y += 16) {
-    for (let x = -16; x < floor.width; x += 32) {
-      const at = x + (y / 16 % 2) * 16;
-      const tone = ((x + 16) / 32 * 7 + y / 16 * 3) % 4;
-      p(at, y, 31, 15, ['#4d6074', '#506477', '#4b5f74', '#536677'][tone]);
-      p(at + 1, y + 1, 28, 1, '#788a94'); p(at + 29, y + 2, 1, 11, '#3a4b62'); p(at + 2, y + 13, 27, 1, '#40536b');
-      if (tone === 1) { p(at + 8, y + 5, 3, 1, '#657b89'); p(at + 10, y + 6, 1, 3, '#3a4b62'); }
-      if (tone === 3) { p(at + 22, y + 10, 4, 1, '#859398'); p(at + 23, y + 11, 2, 1, '#657985'); }
+  // Warm cobblestone with bold grout lines and per-stone wear.
+  p(0, 0, floor.width, floor.height, '#3d3330');
+  const stones = ['#6e6055', '#75665a', '#675a4e', '#736257', '#6a5d53', '#77695c'];
+  for (let y = 0; y < floor.height; y += 18) {
+    for (let x = -40; x < floor.width; x += 40) {
+      const at = x + (y / 18 % 2) * 20;
+      const tone = stones[((x + 40) / 40 * 5 + y / 18 * 3) % stones.length];
+      p(at, y, 37, 16, tone);
+      p(at, y, 37, 2, '#8d7d6d');
+      p(at, y + 13, 37, 3, '#514539');
+      p(at + 35, y, 2, 16, '#4a3f36');
+      if (tone === stones[1]) { p(at + 6, y + 6, 3, 1, '#4f443a'); p(at + 7, y + 7, 2, 1, '#4f443a'); }
+      if (tone === stones[3]) { p(at + 22, y + 4, 5, 2, '#57674a'); p(at + 24, y + 6, 2, 1, '#57674a'); }
+      if (tone === stones[5]) { p(at + 14, y + 9, 5, 1, '#8a7a68'); p(at + 18, y + 10, 2, 1, '#8a7a68'); }
     }
   }
-  // Low-contrast scuffed paving, rather than a decorative targeting ring.
-  for (let i = 0; i < 38; i++) {
-    const x = 40 + i * 83 % 480, y = 30 + i * 47 % 300;
-    p(x, y, 2 + i % 3, 1, i % 2 ? '#78858b' : '#3f5269');
+  // Worn central medallion where the boss makes its stand.
+  const cx = floor.width / 2, cy = floor.height / 2;
+  pixelOval(ctx, cx, cy, 212, 132, '#5c4f45', '#453a33');
+  pixelOval(ctx, cx, cy, 198, 120, '#6e6055', null);
+  pixelOval(ctx, cx, cy, 180, 103, '#c9973f');
+  pixelOval(ctx, cx, cy, 174, 97, '#6a5d52');
+  pixelOval(ctx, cx, cy, 150, 76, '#76685b', null);
+  pixelOval(ctx, cx, cy, 120, 52, '#5c4f45', null);
+  for (const [gx, gy] of [[cx, cy - 100], [cx, cy + 100], [cx - 158, cy], [cx + 158, cy]]) {
+    pixelPolygon(ctx, [[gx, gy - 5], [gx + 5, gy], [gx, gy + 5], [gx - 5, gy]], '#a34536', '#453a33', false);
+    pixelPolygon(ctx, [[gx, gy - 2], [gx + 2, gy], [gx, gy + 2], [gx - 2, gy]], '#d97a5a', null);
   }
   for (const wall of WALLS) {
     const x = Math.floor(wall.x / ART_UNIT), y = Math.floor(wall.y / ART_UNIT), w = Math.floor(wall.w / ART_UNIT), h = Math.floor(wall.h / ART_UNIT);
-    p(x, y, w, h, '#1b293e'); p(x + 1, y + 1, w - 2, h - 3, '#6a778a'); p(x + 1, y + 1, w - 2, 2, '#bac0b3');
-    p(x + 2, y + 3, w - 4, 1, '#8d9aa4');
+    p(x, y, w, h, '#241a20'); p(x + 1, y + 1, w - 2, h - 3, '#6f6157'); p(x + 1, y + 1, w - 2, 2, '#a4947f');
+    p(x + 2, y + 3, w - 4, 1, '#8d7d6d');
     for (let by = y + 5; by < y + h - 2; by += 8) for (let bx = x + 2; bx < x + w - 2; bx += 16) {
-      p(bx, by, Math.min(14, x + w - 2 - bx), 1, '#35465e');
-      p(bx + 3, by + 1, 1, Math.min(6, y + h - 2 - by), '#41546b');
+      p(bx, by, Math.min(14, x + w - 2 - bx), 1, '#3a2f33');
+      p(bx + 3, by + 1, 1, Math.min(6, y + h - 2 - by), '#574a42');
     }
   }
-  // Small rubble piles and discarded shields keep the fantasy setting playful.
-  for (const [x, y] of [[56, 68], [488, 247], [64, 301], [476, 58]]) {
+  // Hanging battle banners dress the north wall above the boss's stand.
+  for (const bx of [180, 560, 940]) {
+    pixelPolygon(ctx, [[bx - 14, 24], [bx + 14, 24], [bx + 14, 60], [bx, 72], [bx - 14, 60]], '#a83a3c', '#20141a', true);
+    pixelPolygon(ctx, [[bx - 10, 28], [bx + 10, 28], [bx + 10, 56], [bx - 10, 56]], '#c14f47', null);
+    pixelPolygon(ctx, [[bx - 4, 34], [bx + 4, 34], [bx + 4, 48], [bx - 4, 48]], '#e8c95e', '#20141a', false);
+  }
+  // Wooden barrels and rubble piles keep the arena corners lively.
+  for (const [x, y] of [[76, 96], [1046, 648], [1044, 96], [78, 648]]) {
+    pixelPolygon(ctx, [[x - 11, y - 14], [x + 11, y - 14], [x + 13, y + 8], [x - 13, y + 8]], '#8a5a34', '#221812', true);
+    pixelPolygon(ctx, [[x - 11, y - 14], [x + 11, y - 14], [x + 11, y - 11], [x - 11, y - 11]], '#a8743f', null);
+    pixelPolygon(ctx, [[x - 13, y - 6], [x + 13, y - 6], [x + 13, y - 2], [x - 13, y - 2]], '#5c4226', '#221812', false);
+    pixelPolygon(ctx, [[x - 13, y + 2], [x + 13, y + 2], [x + 13, y + 6], [x - 13, y + 6]], '#5c4226', '#221812', false);
+    pixelPolygon(ctx, [[x - 9, y - 12], [x - 6, y - 12], [x - 6, y + 7], [x - 9, y + 7]], '#b8854a', null);
+  }
+  for (const [x, y] of [[488, 247], [300, 420], [476, 58], [860, 300]]) {
     pixelPolygon(ctx, [[x - 5, y], [x + 5, y - 3], [x + 9, y + 2], [x + 4, y + 7], [x - 7, y + 5]], '#8e8173', '#354359');
     pixelPolygon(ctx, [[x - 3, y], [x + 2, y - 2], [x + 5, y], [x + 1, y + 3]], '#c9b389');
   }
@@ -121,9 +155,11 @@ export function createArt() {
   const orc = Object.fromEntries(Object.entries({ idle: 2, windup: 2, overhead: 2, slam: 1, recover: 1, dead: 1 })
     .map(([pose, count]) => [pose, Array.from({ length: count }, (_, frame) => variants(orcSprite(pose, frame)))]));
   const glow = surface(81, 81), glowCtx = glow.getContext('2d');
-  for (let r = 39; r >= 7; r -= 8) { glowCtx.globalAlpha = 0.035; pixelOval(glowCtx, 40, 40, r, r, '#ffc566'); }
+  for (let r = 39; r >= 7; r -= 8) { glowCtx.globalAlpha = 0.045; pixelOval(glowCtx, 40, 40, r, r, '#ffc566'); }
+  glowCtx.globalAlpha = 1;
   return { floor, heroes, orc, grave, glow, flames: Array.from({ length: 4 }, (_, frame) => flameSprite(frame)),
     rocks: Array.from({ length: 4 }, (_, frame) => rockSprite(frame)), smoke: Array.from({ length: 6 }, (_, frame) => smokeSprite(frame)),
+    stars: [starSprite(false), starSprite(true)],
     torches: [{ x: 360, y: 152 }, { x: 760, y: 152 }, { x: 360, y: 568 }, { x: 760, y: 568 }] };
 }
 

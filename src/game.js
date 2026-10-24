@@ -242,6 +242,15 @@ export class Game {
       if (entity.boss) this.drawBoss(ctx);
       else this.drawHero(ctx, entity.player, entity.index);
     }
+    // Impact stars pop in front of everything, TMNT arcade style.
+    for (const star of this.effects.stars) {
+      const age = this.visualNow - star.start;
+      if (age < 0 || age > 0.26) continue;
+      const sprite = this.art.stars[age < 0.07 || age >= 0.16 ? 0 : 1];
+      ctx.globalAlpha = age > 0.2 ? (0.26 - age) / 0.06 : 1;
+      ctx.drawImage(sprite, Math.round(star.x) - (sprite.width >> 1), Math.round(star.y - age * 30) - (sprite.height >> 1));
+    }
+    ctx.globalAlpha = 1;
     for (const shot of this.fight.shots) {
       const elapsed = this.host ? 0 : Math.max(0, Math.min(this.fight.t - this.snapshotTime, 0.12));
       const x = Math.round((shot.x + shot.vx * elapsed) / ART_UNIT), y = Math.round((shot.y + shot.vy * elapsed) / ART_UNIT);
@@ -312,8 +321,8 @@ export class Game {
       ctx.globalAlpha = animation.frame === 1 ? 1 : 0.35;
       for (let i = 0; i < 14; i++) {
         const angle = heading - 1.1 + i * 0.16, next = angle + 0.16;
-        pixelLine(ctx, x + Math.cos(angle) * 30, y - 9 + Math.sin(angle) * 22, x + Math.cos(next) * 30, y - 9 + Math.sin(next) * 22, '#ebdfc3');
-        pixelLine(ctx, x + Math.cos(angle) * 28, y - 9 + Math.sin(angle) * 20, x + Math.cos(next) * 28, y - 9 + Math.sin(next) * 20, '#8fa9bd');
+        pixelLine(ctx, x + Math.cos(angle) * 30, y - 9 + Math.sin(angle) * 22, x + Math.cos(next) * 30, y - 9 + Math.sin(next) * 22, '#fff6d8');
+        pixelLine(ctx, x + Math.cos(angle) * 28, y - 9 + Math.sin(angle) * 20, x + Math.cos(next) * 28, y - 9 + Math.sin(next) * 20, '#b7cfe8');
       }
       ctx.globalAlpha = 1;
     }

@@ -1,5 +1,6 @@
 // Scanline polygons and integer lines: shaped silhouettes without antialiasing.
-export function pixelLine(ctx, x0, y0, x1, y1, color) {
+// Cartoon-brawler sprites opt into bold 2px contours; everything else stays 1px.
+export function pixelLine(ctx, x0, y0, x1, y1, color, width = 1) {
   if (![x0, y0, x1, y1].every(Number.isFinite) || Math.abs(x1 - x0) + Math.abs(y1 - y0) > 2048) return;
   x0 = Math.round(x0); y0 = Math.round(y0); x1 = Math.round(x1); y1 = Math.round(y1);
   const dx = Math.abs(x1 - x0), sx = x0 < x1 ? 1 : -1;
@@ -7,7 +8,8 @@ export function pixelLine(ctx, x0, y0, x1, y1, color) {
   let error = dx + dy;
   ctx.fillStyle = color;
   while (true) {
-    ctx.fillRect(x0, y0, 1, 1);
+    if (width > 1) { ctx.fillRect(x0, y0, 2, 1); ctx.fillRect(x0, y0 + 1, 2, 1); }
+    else ctx.fillRect(x0, y0, 1, 1);
     if (x0 === x1 && y0 === y1) break;
     const twice = 2 * error;
     if (twice >= dy) { error += dy; x0 += sx; }
@@ -15,7 +17,7 @@ export function pixelLine(ctx, x0, y0, x1, y1, color) {
   }
 }
 
-export function pixelPolygon(ctx, points, color, outline = null) {
+export function pixelPolygon(ctx, points, color, outline = null, bold = false) {
   const vertices = points.map(([x, y]) => [Math.round(x), Math.round(y)]);
   if (vertices.length < 3 || vertices.length > 64 || vertices.some(point => point.some(value => !Number.isFinite(value)))) return;
   const top = Math.min(...vertices.map(p => p[1])), bottom = Math.max(...vertices.map(p => p[1]));
@@ -35,11 +37,11 @@ export function pixelPolygon(ctx, points, color, outline = null) {
   }
   if (outline) for (let i = 0; i < vertices.length; i++) {
     const a = vertices[i], b = vertices[(i + 1) % vertices.length];
-    pixelLine(ctx, ...a, ...b, outline);
+    pixelLine(ctx, ...a, ...b, outline, bold ? 2 : 1);
   }
 }
 
-export function pixelOval(ctx, x, y, rx, ry, color, outline = null) {
+export function pixelOval(ctx, x, y, rx, ry, color, outline = null, bold = false) {
   const points = Array.from({ length: 16 }, (_, i) => [x + Math.cos(i * Math.PI / 8) * rx, y + Math.sin(i * Math.PI / 8) * ry]);
-  pixelPolygon(ctx, points, color, outline);
+  pixelPolygon(ctx, points, color, outline, bold);
 }

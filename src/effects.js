@@ -1,10 +1,10 @@
 // Cosmetic only: no collision, game-clock pauses, or extra network messages.
 import { ART_UNIT } from './scale.js';
 const COLORS = {
-  hit: ['#fff0c7', '#e4af69', '#98634c'], 'fire-hit': ['#fff3bd', '#eeaa58', '#c45345'],
+  hit: ['#ffffff', '#ffe27a', '#f5a23c'], 'fire-hit': ['#ffffff', '#ffcf5e', '#f07f3a'],
   slam: ['#e8c59a', '#92767c', '#57516c'], hurt: ['#efbfab', '#d76e68', '#8d465a'],
   death: ['#e9d5ae', '#af7e79', '#5a536c'], cast: ['#e5f6e3', '#91d4ce', '#6793bd'],
-  cleave: ['#fff0c7', '#c1d1d4', '#738ca7'], dodge: ['#becad7', '#75899b', '#4a526d'], bow: ['#dfd5b3', '#95b4a5', '#647b80'],
+  cleave: ['#fff6d8', '#c1d1d4', '#738ca7'], dodge: ['#becad7', '#75899b', '#4a526d'], bow: ['#dfd5b3', '#95b4a5', '#647b80'],
 };
 
 export class Effects {
@@ -14,6 +14,7 @@ export class Effects {
     this.numbers = [];
     this.smoke = [];
     this.scars = [];
+    this.stars = [];
     this.lastId = 0;
     this.shakeUntil = 0;
     this.shakePower = 0;
@@ -49,6 +50,11 @@ export class Effects {
             vx: Math.cos(angle) * 9, vy: -10 - i % 5, start, life: 0.7 + (i % 4) * 0.1 });
         }
       }
+      // Cartoon impact stars pop over melee hits and slam centers.
+      if (!this.reduced && age < 0.3 && ['hit', 'fire-hit', 'slam'].includes(event.kind)) {
+        this.stars.push({ x: event.x / ART_UNIT, y: event.y / ART_UNIT - (event.kind === 'slam' ? 18 : 34),
+          big: event.kind === 'slam', start });
+      }
       if (event.value > 0 && ['hit', 'fire-hit', 'hurt'].includes(event.kind)) {
         this.numbers.push({ x: event.x / ART_UNIT, y: event.y / ART_UNIT - 25, value: event.value, color: event.kind === 'hurt' ? '#eea49b' : '#ffe2a6', start });
       }
@@ -62,6 +68,7 @@ export class Effects {
     if (this.numbers.length > 12) this.numbers.splice(0, this.numbers.length - 12);
     if (this.smoke.length > 36) this.smoke.splice(0, this.smoke.length - 36);
     if (this.scars.length > 8) this.scars.splice(0, this.scars.length - 8);
+    if (this.stars.length > 8) this.stars.splice(0, this.stars.length - 8);
   }
 
   update(now) {
@@ -69,6 +76,7 @@ export class Effects {
     this.numbers = this.numbers.filter(p => now - p.start < 0.65);
     this.smoke = this.smoke.filter(p => now - p.start < p.life);
     this.scars = this.scars.filter(p => now - p.start < 1.2);
+    this.stars = this.stars.filter(p => now - p.start < 0.26);
   }
 
   shake(now) {
